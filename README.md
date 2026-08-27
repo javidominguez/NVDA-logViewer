@@ -1,0 +1,1 @@
+prototipo de una interfaz para visualizar el registro de NVDA de forma estructurada en una vista de árbol, con posiblidad de aplicar filtros para encontrar la información más fácilmente.
