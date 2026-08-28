@@ -512,7 +512,10 @@ class MainFrame(wx.Frame):
 
         self.level_checks = {}
 
-        for level in LogModel.LEVELS:
+        # Definir el orden específico para la interfaz
+        display_order = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
+
+        for level in display_order:
 
             checkbox = wx.CheckBox(
                 panel,
