@@ -13,10 +13,11 @@ from datetime import datetime
 # ============================================================================
 
 HEADER_RE = re.compile(
-    r"^(?P<level>DEBUG|INFO|WARNING|ERROR)\s+-\s+"
+    r"^(?P<level>DEBUG|INFO|WARNING|ERROR|DEBUGWARNING)\s+-\s+"
     r"(?P<source>.*?)\s+\((?P<time>\d\d:\d\d:\d\d\.\d+)\)\s+-\s+"
-    r"(?P<thread>.*?)\s+\((?P<pid>\d+)\):\s*$"
+    r"(?P<thread>.*?)\s*(?:\((?P<pid>\d+)\))?:\s*$"
 )
+
 
 # Patrón para Tracebacks: File "Ruta", line Numero,
 TRACEBACK_FILE_RE = re.compile(
@@ -266,6 +267,7 @@ class LogModel:
         "INFO",
         "WARNING",
         "ERROR",
+        "DEBUGWARNING",
     )
 
     def __init__(self):
