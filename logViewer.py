@@ -1,9 +1,11 @@
+from pathlib import Path
+import shutil
+import os
 import re
 import wx
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
 
 
 # ============================================================================
@@ -14,6 +16,11 @@ HEADER_RE = re.compile(
     r"^(?P<level>DEBUG|INFO|WARNING|ERROR)\s+-\s+"
     r"(?P<source>.*?)\s+\((?P<time>\d\d:\d\d:\d\d\.\d+)\)\s+-\s+"
     r"(?P<thread>.*?)\s+\((?P<pid>\d+)\):\s*$"
+)
+
+# Patrón para Tracebacks: File "Ruta", line Numero,
+TRACEBACK_FILE_RE = re.compile(
+    r'\s*File "(?P<path>.+)", line (?P<line>\d+),'
 )
 
 GLOBAL_PLUGIN_RE = re.compile(
@@ -689,6 +696,15 @@ class MainFrame(wx.Frame):
             )
 
         # ------------------------------------------------------------
+        # Detalle
+        # ------------------------------------------------------------
+
+        self.detail.Bind(
+            wx.EVT_CHAR_HOOK,
+            self.on_detail_key,
+        )
+
+        # ------------------------------------------------------------
         # Árbol
         # ------------------------------------------------------------
 
@@ -1260,6 +1276,49 @@ class MainFrame(wx.Frame):
         finally:
 
             dialog.Destroy()
+
+    def get_vscode_path(self):
+
+        code = shutil.which("code")
+
+        if code:
+            vscode = Path(code).parent.parent / "Code.exe"
+            return vscode
+
+        return None
+
+    def on_detail_key(self, event):
+
+        if event.GetKeyCode() == wx.WXK_SPACE:
+
+            # Obtener línea actual
+            pos = self.detail.GetInsertionPoint()
+            success, col, line_no = self.detail.PositionToXY(pos)
+            
+            line_text = self.detail.GetLineText(line_no)
+
+            # Analizar con Regex
+            match = TRACEBACK_FILE_RE.search(line_text)
+
+            if match:
+                path = Path(match.group("path"))
+                line = match.group("line")
+
+                if path.exists():
+
+                    vscode = self.get_vscode_path()
+
+                    if vscode and vscode.exists():
+                        os.system(f'start "" "{vscode}" -g "{path}:{line}"')
+                        return
+                    else:
+                        wx.MessageBox(
+                            "No se pudo encontrar VS Code instalado.",
+                            "Error",
+                            wx.OK | wx.ICON_ERROR,
+                        )
+
+        event.Skip()
 
     # ========================================================================
     # DETALLE
