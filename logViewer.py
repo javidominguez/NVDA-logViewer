@@ -278,14 +278,8 @@ class LogModel:
 
         IMPORTANTE:
 
-        El texto de búsqueda se compara ÚNICAMENTE con el encabezado
-        de la entrada.
-
-        Por ejemplo:
-
-            INFO - core.main (17:42:04.341) - MainThread (21420):
-
-        No se busca dentro del mensaje ni del traceback.
+        El texto de búsqueda se compara con el encabezado,
+        el mensaje y el traceback de la entrada.
 
         La búsqueda no distingue mayúsculas/minúsculas.
         """
@@ -305,15 +299,15 @@ class LogModel:
 
             # ------------------------------------------------------------
             # Filtro por texto
-            #
-            # SOLO se utiliza el encabezado.
             # ------------------------------------------------------------
 
             if text_filter:
 
-                header = entry.header_text.casefold()
+                # Combina encabezado, mensaje y traceback para la búsqueda
+                traceback_text = "\n".join(entry.traceback).casefold()
+                content = f"{entry.header_text}\n{entry.message}\n{traceback_text}".casefold()
 
-                if text_filter not in header:
+                if text_filter not in content:
                     continue
 
             result.append(entry)
