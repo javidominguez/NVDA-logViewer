@@ -13,7 +13,7 @@ from datetime import datetime
 # ============================================================================
 
 HEADER_RE = re.compile(
-    r"^(?P<level>DEBUG|INFO|WARNING|ERROR|DEBUGWARNING)\s+-\s+"
+    r"^(?P<level>DEBUG|INFO|WARNING|ERROR|DEBUGWARNING|IO)\s+-\s+"
     r"(?P<source>.*?)\s+\((?P<time>\d\d:\d\d:\d\d\.\d+)\)\s+-\s+"
     r"(?P<thread>.*?)\s*(?:\((?P<pid>\d+)\))?:\s*$"
 )
@@ -268,6 +268,7 @@ class LogModel:
         "WARNING",
         "ERROR",
         "DEBUGWARNING",
+        "IO",
     )
 
     def __init__(self):
