@@ -698,6 +698,11 @@ class MainFrame(wx.Frame):
         )
 
         self.tree.Bind(
+            wx.EVT_CONTEXT_MENU,
+            self.on_tree_context_menu,
+        )
+
+        self.tree.Bind(
             wx.EVT_SET_FOCUS,
             self.on_tree_focus,
         )
@@ -753,6 +758,18 @@ class MainFrame(wx.Frame):
         elif control_down and key_code == ord("F"):
 
             self.text_filter.SetFocus()
+            return
+
+        # F6: Cambiar vista
+        elif key_code == wx.WXK_F6:
+
+            self.change_view(
+                "time" if self.current_view == "source" else "source"
+            )
+
+            # Actualizar radio buttons del menú
+            self.source_view_item.Check(self.current_view == "source")
+            self.time_view_item.Check(self.current_view == "time")
             return
 
         event.Skip()
@@ -1168,6 +1185,81 @@ class MainFrame(wx.Frame):
             f"{entry.level} — "
             f"{message}"
         )
+
+    def on_tree_context_menu(self, event):
+
+        item = self.tree.GetSelection()
+
+        if not item.IsOk():
+            return
+
+        menu = wx.Menu()
+
+        if self.current_view == "source":
+
+            export_item = menu.Append(wx.ID_ANY, "Exportar")
+            self.Bind(wx.EVT_MENU, lambda e: self.on_export(item), export_item)
+
+        clear_filters_item = menu.Append(wx.ID_ANY, "Quitar filtros")
+        self.Bind(wx.EVT_MENU, self.on_clear_filters, clear_filters_item)
+
+        self.PopupMenu(menu)
+        menu.Destroy()
+
+    def get_all_entries_under_node(self, node):
+
+        entries = []
+
+        if node in self.tree_entries:
+            entries.append(self.tree_entries[node])
+
+        child, cookie = self.tree.GetFirstChild(node)
+
+        while child.IsOk():
+
+            entries.extend(self.get_all_entries_under_node(child))
+
+            child, cookie = self.tree.GetNextChild(node, cookie)
+
+        return entries
+
+    def on_export(self, node):
+
+        entries = self.get_all_entries_under_node(node)
+
+        if not entries:
+            return
+
+        dialog = wx.FileDialog(
+            self,
+            "Guardar registro como",
+            wildcard="Archivo de texto (*.txt;*.log)|*.txt;*.log",
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
+
+        try:
+
+            if dialog.ShowModal() != wx.ID_OK:
+                return
+
+            path = Path(dialog.GetPath())
+
+            with path.open("w", encoding="utf-8") as f:
+
+                for entry in sorted(entries, key=lambda e: e.sort_time):
+                    f.write(entry.header_text + "\n")
+
+                    if entry.message:
+                        f.write(entry.message + "\n")
+
+                    if entry.traceback:
+                        f.write("\n".join(entry.traceback) + "\n")
+
+                    f.write("\n")
+
+        finally:
+
+            dialog.Destroy()
 
     # ========================================================================
     # DETALLE
