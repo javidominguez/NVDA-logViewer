@@ -421,6 +421,13 @@ class MainFrame(wx.Frame):
 
         self.source_view_item.Check(True)
 
+        view_menu.AppendSeparator()
+
+        self.clear_filters_item = view_menu.Append(
+            wx.ID_ANY,
+            "&Quitar filtros\tCtrl+Z",
+        )
+
         # ----------------------------------------------------------------
         # Añadir menús
         # ----------------------------------------------------------------
@@ -650,6 +657,12 @@ class MainFrame(wx.Frame):
             self.time_view_item,
         )
 
+        self.Bind(
+            wx.EVT_MENU,
+            self.on_clear_filters,
+            self.clear_filters_item,
+        )
+
         # ------------------------------------------------------------
         # Filtro de texto
         # ------------------------------------------------------------
@@ -700,6 +713,17 @@ class MainFrame(wx.Frame):
 
     def mark_dirty(self):
         self.filters_dirty = True
+
+    def on_clear_filters(self, event):
+
+        self.text_filter.Clear()
+
+        for checkbox in self.level_checks.values():
+
+            checkbox.SetValue(True)
+
+        self.refresh()
+        self.filters_dirty = False
 
     def on_tree_focus(self, event):
 
@@ -861,23 +885,19 @@ class MainFrame(wx.Frame):
 
         file_name = (
             self.current_file_path.name
-            if self.current_file_path
+            if self.current_file_path and self.current_file_path.exists()
             else "Sin archivo"
         )
 
-        last_time = ""
+        status_text = f"{file_name} | {len(entries)} entradas"
 
         if entries:
 
             last_entry = entries[-1]
 
-            last_time = f" | Última entrada: {last_entry.time_text}"
+            status_text += f" | Última entrada: {last_entry.time_text}"
 
-        self.status.SetLabel(
-            f"{file_name} | "
-            f"{len(entries)} entradas"
-            f"{last_time}"
-        )
+        self.status.SetLabel(status_text)
 
     # ========================================================================
     # VISTA POR ORIGEN
