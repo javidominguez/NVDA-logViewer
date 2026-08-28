@@ -333,6 +333,9 @@ class MainFrame(wx.Frame):
         # Nodo del árbol -> LogEntry
         self.tree_entries = {}
 
+        # Flag para saber si los filtros han cambiado
+        self.filters_dirty = False
+
         # Vista actual:
         #
         # source = Por origen
@@ -346,16 +349,20 @@ class MainFrame(wx.Frame):
         self.Centre()
 
         # ----------------------------------------------------------------
-        # Cargar automáticamente prueba.txt si existe
+        # Ruta del archivo cargado actualmente
         # ----------------------------------------------------------------
 
-        test_file = Path(__file__).with_name(
-            "prueba.txt"
-        )
+        self.current_file_path = None
 
-        if test_file.exists():
+        # ----------------------------------------------------------------
+        # Cargar automáticamente nvda.log en TEMP si existe
+        # ----------------------------------------------------------------
 
-            self.load_file(test_file)
+        temp_log = Path.home() / "AppData" / "Local" / "Temp" / "nvda.log"
+
+        if temp_log.exists():
+
+            self.load_file(temp_log)
 
     # ========================================================================
     # MENÚ
@@ -371,17 +378,30 @@ class MainFrame(wx.Frame):
 
         file_menu = wx.Menu()
 
-        self.open_item = file_menu.Append(
-            wx.ID_OPEN,
-            "&Abrir registro...\tCtrl+O",
+        load_menu = wx.Menu()
+
+        self.load_nvda_item = load_menu.Append(
+            wx.ID_ANY,
+            "nvda.log",
         )
+
+        self.load_nvda_old_item = load_menu.Append(
+            wx.ID_ANY,
+            "nvda-old.log",
+        )
+
+        self.open_item = load_menu.Append(
+            wx.ID_OPEN,
+            "&Otro archivo...\tCtrl+O",
+        )
+
+        file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, "&Cargar registro", subMenu=load_menu))
+
+        self.reload_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, "&Recargar registro\tF5"))
 
         file_menu.AppendSeparator()
 
-        self.exit_item = file_menu.Append(
-            wx.ID_EXIT,
-            "&Salir\tAlt+F4",
-        )
+        self.exit_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_EXIT, "&Salir\tAlt+F4"))
 
         # ----------------------------------------------------------------
         # Vista
@@ -506,21 +526,6 @@ class MainFrame(wx.Frame):
             10,
         )
 
-        # ------------------------------------------------------------
-        # Botón abrir
-        # ------------------------------------------------------------
-
-        self.open_button = wx.Button(
-            panel,
-            label="Abrir registro...",
-        )
-
-        filter_box.Add(
-            self.open_button,
-            0,
-            wx.ALIGN_CENTER_VERTICAL,
-        )
-
         main_sizer.Add(
             filter_box,
             0,
@@ -605,8 +610,26 @@ class MainFrame(wx.Frame):
 
         self.Bind(
             wx.EVT_MENU,
+            lambda event: self.load_file(Path.home() / "AppData" / "Local" / "Temp" / "nvda.log"),
+            self.load_nvda_item,
+        )
+
+        self.Bind(
+            wx.EVT_MENU,
+            lambda event: self.load_file(Path.home() / "AppData" / "Local" / "Temp" / "nvda-old.log"),
+            self.load_nvda_old_item,
+        )
+
+        self.Bind(
+            wx.EVT_MENU,
             self.on_open,
             self.open_item,
+        )
+
+        self.Bind(
+            wx.EVT_MENU,
+            self.on_reload,
+            self.reload_item,
         )
 
         self.Bind(
@@ -627,23 +650,18 @@ class MainFrame(wx.Frame):
             self.time_view_item,
         )
 
-        self.open_button.Bind(
-            wx.EVT_BUTTON,
-            self.on_open,
-        )
-
         # ------------------------------------------------------------
         # Filtro de texto
         # ------------------------------------------------------------
 
         self.text_filter.Bind(
             wx.EVT_TEXT,
-            lambda event: self.refresh(),
+            lambda event: self.mark_dirty(),
         )
 
         self.text_filter.Bind(
             wx.EVT_TEXT_ENTER,
-            lambda event: self.refresh(),
+            self.on_filter_enter,
         )
 
         # ------------------------------------------------------------
@@ -654,7 +672,7 @@ class MainFrame(wx.Frame):
 
             checkbox.Bind(
                 wx.EVT_CHECKBOX,
-                lambda event: self.refresh(),
+                lambda event: (self.mark_dirty(), event.Skip()),
             )
 
         # ------------------------------------------------------------
@@ -666,6 +684,11 @@ class MainFrame(wx.Frame):
             self.on_tree_selection,
         )
 
+        self.tree.Bind(
+            wx.EVT_SET_FOCUS,
+            self.on_tree_focus,
+        )
+
         # ------------------------------------------------------------
         # Teclado
         # ------------------------------------------------------------
@@ -675,14 +698,37 @@ class MainFrame(wx.Frame):
             self.on_key,
         )
 
+    def mark_dirty(self):
+        self.filters_dirty = True
+
+    def on_tree_focus(self, event):
+
+        if self.filters_dirty:
+
+            self.refresh()
+            self.filters_dirty = False
+
+        event.Skip()
+
+    def on_filter_enter(self, event):
+
+        self.tree.SetFocus()
+
     def on_key(self, event):
 
-        if (
-            event.ControlDown()
-            and event.GetKeyCode() == ord("O")
-        ):
+        key_code = event.GetKeyCode()
+        control_down = event.ControlDown()
+
+        # Ctrl+O: Abrir registro
+        if control_down and key_code == ord("O"):
 
             self.on_open(event)
+            return
+
+        # Ctrl+F: Foco en filtro
+        elif control_down and key_code == ord("F"):
+
+            self.text_filter.SetFocus()
             return
 
         event.Skip()
@@ -731,6 +777,12 @@ class MainFrame(wx.Frame):
 
         self.load_file(path)
 
+    def on_reload(self, event):
+
+        if self.current_file_path and self.current_file_path.exists():
+
+            self.load_file(self.current_file_path)
+
     def load_file(self, path):
 
         try:
@@ -752,12 +804,16 @@ class MainFrame(wx.Frame):
 
         self.model.entries = parse_log(text)
 
+        self.current_file_path = path
+
         self.refresh()
 
         self.SetTitle(
             f"Visor de registros de NVDA — "
             f"{path.name}"
         )
+
+        self.tree.SetFocus()
 
     # ========================================================================
     # FILTROS
@@ -799,9 +855,28 @@ class MainFrame(wx.Frame):
                 entries
             )
 
+        # ----------------------------------------------------------------
+        # ESTADO
+        # ----------------------------------------------------------------
+
+        file_name = (
+            self.current_file_path.name
+            if self.current_file_path
+            else "Sin archivo"
+        )
+
+        last_time = ""
+
+        if entries:
+
+            last_entry = entries[-1]
+
+            last_time = f" | Última entrada: {last_entry.time_text}"
+
         self.status.SetLabel(
-            f"{len(entries)} entradas mostradas "
-            f"de {len(self.model.entries)}."
+            f"{file_name} | "
+            f"{len(entries)} entradas"
+            f"{last_time}"
         )
 
     # ========================================================================
@@ -818,17 +893,43 @@ class MainFrame(wx.Frame):
             "Registro de NVDA"
         )
 
+        global_commands_node = None
         nvda_node = None
         global_plugins_node = None
         app_modules_node = None
 
         # ----------------------------------------------------------------
-        # Agrupar entradas
+        # Procesar entradas especiales (en la raíz)
+        # ----------------------------------------------------------------
+
+        special_entries = [
+            entry for entry in entries
+            if entry.source_raw == "globalCommands.script_navigatorObject_devInfo"
+        ]
+
+        if special_entries:
+            special_entries.sort(key=lambda e: e.sort_time, reverse=True)
+            special_entries = [special_entries[0]]
+
+        for entry in special_entries:
+
+            node = self.tree.AppendItem(
+                root,
+                "Developer info for navigator object",
+            )
+
+            self.tree_entries[node] = entry
+
+        # ----------------------------------------------------------------
+        # Agrupar entradas normales
         # ----------------------------------------------------------------
 
         groups = {}
 
         for entry in entries:
+
+            if entry.source_raw == "globalCommands.script_navigatorObject_devInfo":
+                continue
 
             if entry.source_type == "NVDA":
 
@@ -850,19 +951,32 @@ class MainFrame(wx.Frame):
             ).append(entry)
 
         # ----------------------------------------------------------------
-        # Crear árbol
+        # Crear grupos de categorías
         # ----------------------------------------------------------------
+
+        def sort_key(item):
+            # Orden:
+            # 1: NVDA
+            # 2: Global Plugins
+            # 3: App Modules
+
+            type_order = {
+                "NVDA": 1,
+                "Global Plugin": 2,
+                "App Module": 3,
+            }
+
+            return (
+                type_order.get(item[0], 99),
+                item[1].lower(),
+            )
 
         for (
             source_type,
             source_name,
         ) in sorted(
             groups.keys(),
-            key=lambda item: (
-                0 if item[0] == "NVDA" else 1,
-                item[0],
-                item[1].lower(),
-            ),
+            key=sort_key,
         ):
 
             group_entries = groups[
@@ -870,10 +984,25 @@ class MainFrame(wx.Frame):
             ]
 
             # --------------------------------------------------------
+            # GLOBAL COMMANDS
+            # --------------------------------------------------------
+
+            if source_type == "Global Commands":
+
+                if global_commands_node is None:
+
+                    global_commands_node = self.tree.AppendItem(
+                        root,
+                        "Global Commands",
+                    )
+
+                emitter_node = global_commands_node
+
+            # --------------------------------------------------------
             # NVDA
             # --------------------------------------------------------
 
-            if source_type == "NVDA":
+            elif source_type == "NVDA":
 
                 if nvda_node is None:
 
@@ -938,10 +1067,16 @@ class MainFrame(wx.Frame):
                 if not level_entries:
                     continue
 
-                level_node = self.tree.AppendItem(
-                    emitter_node,
-                    f"{level} ({len(level_entries)})",
-                )
+                if source_type == "Global Commands":
+
+                    level_node = emitter_node
+
+                else:
+
+                    level_node = self.tree.AppendItem(
+                        emitter_node,
+                        f"{level} ({len(level_entries)})",
+                    )
 
                 for entry in level_entries:
 
@@ -952,8 +1087,11 @@ class MainFrame(wx.Frame):
 
                     self.tree_entries[node] = entry
 
-        # Expandir únicamente NVDA y las categorías principales.
-        self.tree.Expand(root)
+        # Enfocar el primer elemento si existe.
+        child, cookie = self.tree.GetFirstChild(root)
+        if child.IsOk():
+            self.tree.SelectItem(child)
+            self.tree.SetFocus()
 
     # ========================================================================
     # VISTA CRONOLÓGICA
@@ -981,7 +1119,11 @@ class MainFrame(wx.Frame):
 
             self.tree_entries[node] = entry
 
-        self.tree.Expand(root)
+        # Enfocar el primer elemento si existe.
+        child, cookie = self.tree.GetFirstChild(root)
+        if child.IsOk():
+            self.tree.SelectItem(child)
+            self.tree.SetFocus()
 
     # ========================================================================
     # TEXTO DE LAS ENTRADAS
