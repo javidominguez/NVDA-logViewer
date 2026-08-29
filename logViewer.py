@@ -1216,24 +1216,34 @@ class MainFrame(wx.Frame):
     def populate_time_tree(self, entries):
 
         self.tree.DeleteAllItems()
-
         self.detail.Clear()
 
-        root = self.tree.AddRoot(
-            "Registro cronológico"
-        )
+        root = self.tree.AddRoot("Registro cronológico")
 
-        for entry in sorted(
-            entries,
-            key=lambda item: item.sort_time,
-        ):
+        # Agrupar: hora -> minuto -> entradas
+        groups = {}
+        for entry in sorted(entries, key=lambda item: item.sort_time):
+            # Formato time_text: HH:MM:SS.mmm
+            parts = entry.time_text.split(':')
+            hour = parts[0]
+            minute = parts[1]
+            
+            groups.setdefault(hour, {}).setdefault(minute, []).append(entry)
 
-            node = self.tree.AppendItem(
-                root,
-                self.entry_label(entry),
-            )
-
-            self.tree_entries[node] = entry
+        # Construir el árbol
+        for hour in sorted(groups.keys()):
+            hour_node = self.tree.AppendItem(root, f"{hour}:00")
+            
+            minutes = groups[hour]
+            for minute in sorted(minutes.keys()):
+                minute_entries = minutes[minute]
+                minute_node = self.tree.AppendItem(hour_node, f"{hour}:{minute} ({len(minute_entries)})")
+                
+                for entry in minute_entries:
+                    node = self.tree.AppendItem(minute_node, self.entry_label(entry))
+                    self.tree_entries[node] = entry
+            
+            self.tree.Expand(hour_node)
 
         # Enfocar el primer elemento si existe.
         child, cookie = self.tree.GetFirstChild(root)
