@@ -19,7 +19,7 @@ En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre un
 * F5 recarga el archivo abierto.
 * F6 cambia entre la vista en árborl por origen de los mensajes, la vista por niveles  y la vista cronológica.
 * control+F lleva el foco al cuadro de edición de filtro.
-control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
+Con el foco en el árbol, control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
 * control+Z quita los filtros aplicados
 * clic derecho o tecla aplicaciones en el árbol abre el menú contextual
 * alt+F4 cierra la aplicación

@@ -700,7 +700,7 @@ class MainFrame(wx.Frame):
             return
 
         # Ctrl+1..6: Alternar checkboxes de filtro
-        elif control_down and ord("1") <= key_code <= ord("6"):
+        elif control_down and ord("1") <= key_code <= ord("6") and self.tree.HasFocus():
             
             index = key_code - ord("1")
             levels = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
@@ -712,12 +712,12 @@ class MainFrame(wx.Frame):
                 if checkbox:
                     new_value = not checkbox.GetValue()
                     checkbox.SetValue(new_value)
-                    
+
                     state = "activado" if new_value else "desactivado"
                     self.speak(f"{level}, {state}")
-                    
+
                     self.mark_dirty()
-                    wx.CallAfter(self.refresh)
+                    self.refresh()
             return
 
         # F6: Cambiar vista
