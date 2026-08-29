@@ -3,6 +3,7 @@ import shutil
 import os
 import re
 import wx
+import nvdaControllerClient
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -324,6 +325,9 @@ class LogModel:
 
 class MainFrame(wx.Frame):
 
+    def speak(self, text):
+        nvdaControllerClient.message(text)
+
     def __init__(self):
 
         super().__init__(
@@ -366,6 +370,7 @@ class MainFrame(wx.Frame):
 
         if temp_log.exists():
 
+            self.speak("Cargando registro")
             self.load_file(temp_log)
 
     # ========================================================================
@@ -498,6 +503,9 @@ class MainFrame(wx.Frame):
         # El árbol y el detalle compartirán el espacio. Usamos proporción 2:1.
         
         # Árbol
+        self.view_label = wx.StaticText(panel, label="Vista Por origen")
+        main_sizer.Add(self.view_label, 0, wx.LEFT | wx.RIGHT, 8)
+        
         self.tree = wx.TreeCtrl(panel, style=(wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT))
         main_sizer.Add(self.tree, proportion=2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
@@ -653,6 +661,7 @@ class MainFrame(wx.Frame):
 
         self.refresh()
         self.filters_dirty = False
+        self.speak("Filtros eliminados")
 
     def on_tree_focus(self, event):
 
@@ -701,9 +710,14 @@ class MainFrame(wx.Frame):
                 checkbox = self.level_checks.get(level)
                 
                 if checkbox:
-                    checkbox.SetValue(not checkbox.GetValue())
+                    new_value = not checkbox.GetValue()
+                    checkbox.SetValue(new_value)
+                    
+                    state = "activado" if new_value else "desactivado"
+                    self.speak(f"{level}, {state}")
+                    
                     self.mark_dirty()
-                    self.refresh()
+                    wx.CallAfter(self.refresh)
             return
 
         # F6: Cambiar vista
@@ -723,6 +737,9 @@ class MainFrame(wx.Frame):
             self.source_view_item.Check(self.current_view == "source")
             self.level_view_item.Check(self.current_view == "level")
             self.time_view_item.Check(self.current_view == "time")
+            
+            view_names = {"source": "Vista por origen", "level": "Vista por niveles", "time": "Vista cronológica"}
+            self.speak(view_names[next_view])
             return
 
         event.Skip()
@@ -734,6 +751,9 @@ class MainFrame(wx.Frame):
     def change_view(self, view):
 
         self.current_view = view
+        
+        view_names = {"source": "Por origen", "level": "Por nivel", "time": "Cronológica"}
+        self.view_label.SetLabel(f"Vista {view_names[view]}")
 
         self.refresh()
 
@@ -779,6 +799,10 @@ class MainFrame(wx.Frame):
 
     def load_file(self, path):
 
+        # Silenciar voz actual antes de cargar
+        if nvdaControllerClient.clientLib:
+            nvdaControllerClient.clientLib.nvdaController_cancelSpeech()
+
         try:
 
             text = path.read_text(
@@ -798,9 +822,13 @@ class MainFrame(wx.Frame):
 
         self.model.entries = parse_log(text)
 
+        is_reload = (self.current_file_path == path)
         self.current_file_path = path
 
         self.refresh()
+
+        message = "Registro recargado" if is_reload else "Registro cargado"
+        wx.CallLater(500, lambda: self.speak(f"{message}, {len(self.model.entries)} entradas"))
 
         self.SetTitle(
             f"Visor de registros de NVDA — "
