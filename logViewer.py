@@ -423,6 +423,11 @@ class MainFrame(wx.Frame):
             "&Cronológico",
         )
 
+        self.level_view_item = view_menu.AppendRadioItem(
+            wx.ID_ANY,
+            "&Por nivel",
+        )
+
         self.source_view_item.Check(True)
 
         view_menu.AppendSeparator()
@@ -666,6 +671,12 @@ class MainFrame(wx.Frame):
 
         self.Bind(
             wx.EVT_MENU,
+            lambda event: self.change_view("level"),
+            self.level_view_item,
+        )
+
+        self.Bind(
+            wx.EVT_MENU,
             self.on_clear_filters,
             self.clear_filters_item,
         )
@@ -779,13 +790,18 @@ class MainFrame(wx.Frame):
         # F6: Cambiar vista
         elif key_code == wx.WXK_F6:
 
-            self.change_view(
-                "time" if self.current_view == "source" else "source"
-            )
+            views = ["source", "time", "level"]
+            try:
+                next_view = views[(views.index(self.current_view) + 1) % len(views)]
+            except ValueError:
+                next_view = "source"
+
+            self.change_view(next_view)
 
             # Actualizar radio buttons del menú
             self.source_view_item.Check(self.current_view == "source")
             self.time_view_item.Check(self.current_view == "time")
+            self.level_view_item.Check(self.current_view == "level")
             return
 
         event.Skip()
@@ -906,6 +922,12 @@ class MainFrame(wx.Frame):
                 entries
             )
 
+        elif self.current_view == "level":
+            
+            self.populate_level_tree(
+                entries
+            )
+
         else:
 
             self.populate_time_tree(
@@ -931,6 +953,45 @@ class MainFrame(wx.Frame):
             status_text += f" | Última entrada: {last_entry.time_text}"
 
         self.status.SetLabel(status_text)
+
+    # ========================================================================
+    # VISTA POR NIVEL
+    # ========================================================================
+
+    def populate_level_tree(self, entries):
+        self.tree.DeleteAllItems()
+        self.detail.Clear()
+
+        root = self.tree.AddRoot("Registro por nivel")
+
+        # Agrupar por nivel -> modulo
+        groups = {}
+        for entry in entries:
+            groups.setdefault(entry.level, {}).setdefault(entry.module, []).append(entry)
+
+        # Ordenar niveles para visualización
+        for level in LogModel.LEVELS:
+            if level not in groups:
+                continue
+            
+            level_node = self.tree.AppendItem(root, level)
+            
+            modules = groups[level]
+            for module in sorted(modules.keys()):
+                module_entries = modules[module]
+                
+                module_node = self.tree.AppendItem(level_node, f"{module} ({len(module_entries)})")
+                
+                for entry in module_entries:
+                    node = self.tree.AppendItem(module_node, self.entry_label(entry))
+                    self.tree_entries[node] = entry
+        
+        # Enfocar el primer elemento si existe.
+        child, cookie = self.tree.GetFirstChild(root)
+        if child.IsOk():
+            self.tree.SelectItem(child)
+            self.tree.SetFocus()
+
 
     # ========================================================================
     # VISTA POR ORIGEN
