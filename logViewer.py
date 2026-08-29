@@ -1284,7 +1284,7 @@ class MainFrame(wx.Frame):
 
         menu = wx.Menu()
 
-        if self.current_view in ("source", "level"):
+        if self.current_view in ("source", "level", "time"):
 
             export_item = menu.Append(wx.ID_ANY, "Exportar")
             self.Bind(wx.EVT_MENU, lambda e: self.on_export(item), export_item)
