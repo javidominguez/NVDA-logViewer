@@ -461,165 +461,62 @@ class MainFrame(wx.Frame):
 
         panel = wx.Panel(self)
 
-        main_sizer = wx.BoxSizer(
-            wx.VERTICAL
-        )
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
 
         # ----------------------------------------------------------------
         # FILTROS
         # ----------------------------------------------------------------
 
-        filter_box = wx.StaticBoxSizer(
-            wx.HORIZONTAL,
-            panel,
-            "Filtros",
-        )
+        filter_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, "Filtros")
 
-        # ------------------------------------------------------------
         # Texto
-        # ------------------------------------------------------------
+        filter_box.Add(wx.StaticText(panel, label="Filtro:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
 
-        filter_box.Add(
-            wx.StaticText(
-                panel,
-                label="Texto:",
-            ),
-            0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-            6,
-        )
+        self.text_filter = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
+        self.text_filter.SetHint("Buscar en el registro")
+        filter_box.Add(self.text_filter, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
 
-        self.text_filter = wx.TextCtrl(
-            panel,
-            style=wx.TE_PROCESS_ENTER,
-        )
-
-        self.text_filter.SetHint(
-            "Buscar en el registro"
-        )
-
-        filter_box.Add(
-            self.text_filter,
-            1,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-            20,
-        )
-
-        # ------------------------------------------------------------
         # Tipos
-        # ------------------------------------------------------------
-
-        type_box = wx.StaticBoxSizer(
-            wx.HORIZONTAL,
-            panel,
-            "Tipo",
-        )
-
+        type_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, "Niveles")
         self.level_checks = {}
-
-        # Definir el orden específico para la interfaz
         display_order = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
 
         for level in display_order:
-
-            checkbox = wx.CheckBox(
-                panel,
-                label=level,
-            )
-
+            checkbox = wx.CheckBox(panel, label=level)
             checkbox.SetValue(True)
-
             self.level_checks[level] = checkbox
+            type_box.Add(checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
 
-            type_box.Add(
-                checkbox,
-                0,
-                wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-                12,
-            )
+        filter_box.Add(type_box, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
 
-        filter_box.Add(
-            type_box,
-            0,
-            wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
-            10,
-        )
-
-        main_sizer.Add(
-            filter_box,
-            0,
-            wx.EXPAND | wx.ALL,
-            8,
-        )
+        main_sizer.Add(filter_box, 0, wx.EXPAND | wx.ALL, 8)
 
         # ----------------------------------------------------------------
-        # ÁRBOL
+        # ÁRBOL y DETALLE
         # ----------------------------------------------------------------
 
-        self.tree = wx.TreeCtrl(
-            panel,
-            style=(
-                wx.TR_DEFAULT_STYLE
-                | wx.TR_HIDE_ROOT
-            ),
-        )
+        # El árbol y el detalle compartirán el espacio. Usamos proporción 2:1.
+        
+        # Árbol
+        self.tree = wx.TreeCtrl(panel, style=(wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT))
+        main_sizer.Add(self.tree, proportion=2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
-        main_sizer.Add(
-            self.tree,
-            1,
-            wx.EXPAND | wx.LEFT | wx.RIGHT,
-            8,
-        )
-
-        # ----------------------------------------------------------------
-        # DETALLE
-        # ----------------------------------------------------------------
-
-        detail_box = wx.StaticBoxSizer(
-            wx.VERTICAL,
-            panel,
-            "Detalle",
-        )
-
-        self.detail = wx.TextCtrl(
-            panel,
-            style=(
-                wx.TE_MULTILINE
-                | wx.TE_READONLY
-                | wx.HSCROLL
-            ),
-        )
-
-        detail_box.Add(
-            self.detail,
-            1,
-            wx.EXPAND,
-        )
-
-        main_sizer.Add(
-            detail_box,
-            0,
-            wx.EXPAND | wx.ALL,
-            8,
-        )
+        # Detalle
+        detail_box = wx.StaticBoxSizer(wx.VERTICAL, panel, "Detalle")
+        self.detail = wx.TextCtrl(panel, style=(wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL))
+        detail_box.Add(self.detail, 1, wx.EXPAND)
+        
+        main_sizer.Add(detail_box, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
 
         # ----------------------------------------------------------------
         # ESTADO
         # ----------------------------------------------------------------
 
-        self.status = wx.StaticText(
-            panel,
-            label="Sin registro cargado.",
-        )
-
-        main_sizer.Add(
-            self.status,
-            0,
-            wx.LEFT | wx.BOTTOM,
-            8,
-        )
+        self.status = wx.StaticText(panel, label="Sin registro cargado.")
+        main_sizer.Add(self.status, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
         panel.SetSizer(main_sizer)
+
 
     # ========================================================================
     # EVENTOS
@@ -785,6 +682,28 @@ class MainFrame(wx.Frame):
         elif control_down and key_code == ord("F"):
 
             self.text_filter.SetFocus()
+            return
+            
+        # Ctrl+T: Foco en árbol
+        elif control_down and key_code == ord("T"):
+            
+            self.tree.SetFocus()
+            return
+
+        # Ctrl+1..6: Alternar checkboxes de filtro
+        elif control_down and ord("1") <= key_code <= ord("6"):
+            
+            index = key_code - ord("1")
+            levels = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
+            
+            if index < len(levels):
+                level = levels[index]
+                checkbox = self.level_checks.get(level)
+                
+                if checkbox:
+                    checkbox.SetValue(not checkbox.GetValue())
+                    self.mark_dirty()
+                    self.refresh()
             return
 
         # F6: Cambiar vista
