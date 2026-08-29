@@ -828,7 +828,7 @@ class MainFrame(wx.Frame):
         self.refresh()
 
         message = "Registro recargado" if is_reload else "Registro cargado"
-        wx.CallLater(500, lambda: self.speak(f"{message}, {len(self.model.entries)} entradas"))
+        wx.CallLater(100, lambda: self.speak(f"{message}, {len(self.model.entries)} entradas"))
 
         self.SetTitle(
             f"Visor de registros de NVDA — "
