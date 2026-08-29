@@ -418,14 +418,14 @@ class MainFrame(wx.Frame):
             "&Por origen",
         )
 
-        self.time_view_item = view_menu.AppendRadioItem(
-            wx.ID_ANY,
-            "&Cronológico",
-        )
-
         self.level_view_item = view_menu.AppendRadioItem(
             wx.ID_ANY,
             "&Por nivel",
+        )
+
+        self.time_view_item = view_menu.AppendRadioItem(
+            wx.ID_ANY,
+            "&Cronológico",
         )
 
         self.source_view_item.Check(True)
@@ -495,7 +495,7 @@ class MainFrame(wx.Frame):
         )
 
         self.text_filter.SetHint(
-            "Buscar en los encabezados"
+            "Buscar en el registro"
         )
 
         filter_box.Add(
@@ -790,18 +790,20 @@ class MainFrame(wx.Frame):
         # F6: Cambiar vista
         elif key_code == wx.WXK_F6:
 
-            views = ["source", "time", "level"]
-            try:
-                next_view = views[(views.index(self.current_view) + 1) % len(views)]
-            except ValueError:
+            # Orden: Origen -> Nivel -> Cronológico
+            if self.current_view == "source":
+                next_view = "level"
+            elif self.current_view == "level":
+                next_view = "time"
+            else:
                 next_view = "source"
 
             self.change_view(next_view)
 
             # Actualizar radio buttons del menú
             self.source_view_item.Check(self.current_view == "source")
-            self.time_view_item.Check(self.current_view == "time")
             self.level_view_item.Check(self.current_view == "level")
+            self.time_view_item.Check(self.current_view == "time")
             return
 
         event.Skip()

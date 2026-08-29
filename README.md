@@ -17,7 +17,7 @@ En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre un
 
 * control+O Abre un archivo .log
 * F5 recarga el archivo abierto.
-* F6 cambia entre la vista en árborl por origen de los mensajes y la vista cronológica.
+* F6 cambia entre la vista en árborl por origen de los mensajes, la vista por niveles  y la vista cronológica.
 * control+F lleva el foco al cuadro de edición de filtro.
 * control+Z quita los filtros aplicados
 * clic derecho o tecla aplicaciones en el árbol abre el menú contextual
