@@ -4,6 +4,8 @@ import os
 import re
 import wx
 import nvdaControllerClient
+import l10n
+from l10n import _
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -332,7 +334,7 @@ class MainFrame(wx.Frame):
 
         super().__init__(
             None,
-            title="Visor de registros de NVDA",
+            title=_("Visor de registros de NVDA"),
             size=(1250, 800),
         )
 
@@ -370,7 +372,7 @@ class MainFrame(wx.Frame):
 
         if temp_log.exists():
 
-            self.speak("Cargando registro")
+            self.speak(_("Cargando registro"))
             self.load_file(temp_log)
 
     # ========================================================================
@@ -401,16 +403,16 @@ class MainFrame(wx.Frame):
 
         self.open_item = load_menu.Append(
             wx.ID_OPEN,
-            "&Otro archivo...\tCtrl+O",
+            _("&Otro archivo...\tCtrl+O"),
         )
 
-        file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, "&Cargar registro", subMenu=load_menu))
+        file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Cargar registro"), subMenu=load_menu))
 
-        self.reload_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, "&Recargar registro\tF5"))
+        self.reload_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Recargar registro\tF5")))
 
         file_menu.AppendSeparator()
 
-        self.exit_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_EXIT, "&Salir\tAlt+F4"))
+        self.exit_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_EXIT, _("&Salir\tAlt+F4")))
 
         # ----------------------------------------------------------------
         # Vista
@@ -420,17 +422,17 @@ class MainFrame(wx.Frame):
 
         self.source_view_item = view_menu.AppendRadioItem(
             wx.ID_ANY,
-            "&Por origen",
+            _("&Por origen"),
         )
 
         self.level_view_item = view_menu.AppendRadioItem(
             wx.ID_ANY,
-            "&Por nivel",
+            _("&Por nivel"),
         )
 
         self.time_view_item = view_menu.AppendRadioItem(
             wx.ID_ANY,
-            "&Cronológico",
+            _("&Cronológico"),
         )
 
         self.source_view_item.Check(True)
@@ -439,7 +441,7 @@ class MainFrame(wx.Frame):
 
         self.clear_filters_item = view_menu.Append(
             wx.ID_ANY,
-            "&Quitar filtros\tCtrl+Z",
+            _("&Quitar filtros\tCtrl+Z"),
         )
 
         # ----------------------------------------------------------------
@@ -448,12 +450,12 @@ class MainFrame(wx.Frame):
 
         menubar.Append(
             file_menu,
-            "&Archivo",
+            _("&Archivo"),
         )
 
         menubar.Append(
             view_menu,
-            "&Vista",
+            _("&Vista"),
         )
 
         self.SetMenuBar(menubar)
@@ -472,17 +474,17 @@ class MainFrame(wx.Frame):
         # FILTROS
         # ----------------------------------------------------------------
 
-        filter_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, "Filtros")
+        filter_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Filtros"))
 
         # Texto
-        filter_box.Add(wx.StaticText(panel, label="Filtro:"), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
+        filter_box.Add(wx.StaticText(panel, label=_("Filtro:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 6)
 
         self.text_filter = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-        self.text_filter.SetHint("Buscar en el registro")
+        self.text_filter.SetHint(_("Buscar en el registro"))
         filter_box.Add(self.text_filter, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
 
         # Tipos
-        type_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, "Niveles")
+        type_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Niveles"))
         self.level_checks = {}
         display_order = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
 
@@ -503,14 +505,14 @@ class MainFrame(wx.Frame):
         # El árbol y el detalle compartirán el espacio. Usamos proporción 2:1.
         
         # Árbol
-        self.view_label = wx.StaticText(panel, label="Vista Por origen")
+        self.view_label = wx.StaticText(panel, label=_("Vista Por origen"))
         main_sizer.Add(self.view_label, 0, wx.LEFT | wx.RIGHT, 8)
         
         self.tree = wx.TreeCtrl(panel, style=(wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT))
         main_sizer.Add(self.tree, proportion=2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
         # Detalle
-        detail_box = wx.StaticBoxSizer(wx.VERTICAL, panel, "Detalle")
+        detail_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Detalle"))
         self.detail = wx.TextCtrl(panel, style=(wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL))
         detail_box.Add(self.detail, 1, wx.EXPAND)
         
@@ -661,7 +663,7 @@ class MainFrame(wx.Frame):
 
         self.refresh()
         self.filters_dirty = False
-        self.speak("Filtros eliminados")
+        self.speak(_("Filtros eliminados"))
 
     def on_tree_focus(self, event):
 
@@ -713,8 +715,8 @@ class MainFrame(wx.Frame):
                     new_value = not checkbox.GetValue()
                     checkbox.SetValue(new_value)
 
-                    state = "activado" if new_value else "desactivado"
-                    self.speak(f"{level}, {state}")
+                    state = _("activado") if new_value else _("desactivado")
+                    self.speak(_("{}, {}").format(level, state))
 
                     self.mark_dirty()
                     self.refresh()
@@ -738,7 +740,7 @@ class MainFrame(wx.Frame):
             self.level_view_item.Check(self.current_view == "level")
             self.time_view_item.Check(self.current_view == "time")
             
-            view_names = {"source": "Vista por origen", "level": "Vista por niveles", "time": "Vista cronológica"}
+            view_names = {"source": _("Vista por origen"), "level": _("Vista por niveles"), "time": _("Vista cronológica")}
             self.speak(view_names[next_view])
             return
 
@@ -752,8 +754,8 @@ class MainFrame(wx.Frame):
 
         self.current_view = view
         
-        view_names = {"source": "Por origen", "level": "Por nivel", "time": "Cronológica"}
-        self.view_label.SetLabel(f"Vista {view_names[view]}")
+        view_names = {"source": _("Por origen"), "level": _("Por nivel"), "time": _("Cronológica")}
+        self.view_label.SetLabel(_("Vista {}").format(view_names[view]))
 
         self.refresh()
 
@@ -827,12 +829,11 @@ class MainFrame(wx.Frame):
 
         self.refresh()
 
-        message = "Registro recargado" if is_reload else "Registro cargado"
-        wx.CallLater(100, lambda: self.speak(f"{message}, {len(self.model.entries)} entradas"))
+        message = _("Registro recargado") if is_reload else _("Registro cargado")
+        wx.CallLater(100, lambda: self.speak(_("{}, {} entradas").format(message, len(self.model.entries))))
 
         self.SetTitle(
-            f"Visor de registros de NVDA — "
-            f"{path.name}"
+            _("Visor de registros de NVDA — {}").format(path.name)
         )
 
         self.tree.SetFocus()
@@ -953,7 +954,7 @@ class MainFrame(wx.Frame):
         self.detail.Clear()
 
         root = self.tree.AddRoot(
-            "Registro de NVDA"
+            _("Registro de NVDA")
         )
 
         global_commands_node = None
@@ -978,7 +979,7 @@ class MainFrame(wx.Frame):
 
             node = self.tree.AppendItem(
                 root,
-                "Developer info for navigator object",
+                _("Developer info for navigator object"),
             )
 
             self.tree_entries[node] = entry
@@ -1056,7 +1057,7 @@ class MainFrame(wx.Frame):
 
                     global_commands_node = self.tree.AppendItem(
                         root,
-                        "Global Commands",
+                        _("Global Commands"),
                     )
 
                 emitter_node = global_commands_node
@@ -1089,7 +1090,7 @@ class MainFrame(wx.Frame):
 
                     global_plugins_node = self.tree.AppendItem(
                         root,
-                        "Global Plugins",
+                        _("Global Plugins"),
                     )
 
                 emitter_node = self.tree.AppendItem(
@@ -1107,7 +1108,7 @@ class MainFrame(wx.Frame):
 
                     app_modules_node = self.tree.AppendItem(
                         root,
-                        "App Modules",
+                        _("App Modules"),
                     )
 
                 emitter_node = self.tree.AppendItem(
@@ -1138,7 +1139,7 @@ class MainFrame(wx.Frame):
 
                     level_node = self.tree.AppendItem(
                         emitter_node,
-                        f"{level} ({len(level_entries)})",
+                        _("{} ({})").format(level, len(level_entries)),
                     )
 
                 for entry in level_entries:
@@ -1165,7 +1166,7 @@ class MainFrame(wx.Frame):
         self.tree.DeleteAllItems()
         self.detail.Clear()
 
-        root = self.tree.AddRoot("Registro cronológico")
+        root = self.tree.AddRoot(_("Registro cronológico"))
 
         # Agrupar: hora -> minuto -> entradas
         groups = {}
@@ -1184,7 +1185,7 @@ class MainFrame(wx.Frame):
             minutes = groups[hour]
             for minute in sorted(minutes.keys()):
                 minute_entries = minutes[minute]
-                minute_node = self.tree.AppendItem(hour_node, f"{hour}:{minute} ({len(minute_entries)})")
+                minute_node = self.tree.AppendItem(hour_node, _("{}:{} ({})").format(hour, minute, len(minute_entries)))
                 
                 for entry in minute_entries:
                     node = self.tree.AppendItem(minute_node, self.entry_label(entry))
@@ -1197,6 +1198,7 @@ class MainFrame(wx.Frame):
         if child.IsOk():
             self.tree.SelectItem(child)
             self.tree.SetFocus()
+# ... (rest of code needs more replacements)
 
     # ========================================================================
     # TEXTO DE LAS ENTRADAS
@@ -1233,10 +1235,10 @@ class MainFrame(wx.Frame):
 
         if self.current_view in ("source", "level", "time"):
 
-            export_item = menu.Append(wx.ID_ANY, "Exportar")
+            export_item = menu.Append(wx.ID_ANY, _("Exportar"))
             self.Bind(wx.EVT_MENU, lambda e: self.on_export(item), export_item)
 
-        clear_filters_item = menu.Append(wx.ID_ANY, "Quitar filtros")
+        clear_filters_item = menu.Append(wx.ID_ANY, _("Quitar filtros"))
         self.Bind(wx.EVT_MENU, self.on_clear_filters, clear_filters_item)
 
         self.PopupMenu(menu)
@@ -1268,8 +1270,8 @@ class MainFrame(wx.Frame):
 
         dialog = wx.FileDialog(
             self,
-            "Guardar registro como",
-            wildcard="Archivo de texto (*.txt;*.log)|*.txt;*.log",
+            _("Guardar registro como"),
+            wildcard=_("Archivo de texto (*.txt;*.log)|*.txt;*.log"),
             style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
         )
 
@@ -1333,8 +1335,8 @@ class MainFrame(wx.Frame):
                         return
                     else:
                         wx.MessageBox(
-                            "No se pudo encontrar VS Code instalado.",
-                            "Error",
+                            _("No se pudo encontrar VS Code instalado."),
+                            _("Error"),
                             wx.OK | wx.ICON_ERROR,
                         )
 
@@ -1357,28 +1359,28 @@ class MainFrame(wx.Frame):
             return
 
         lines = [
-            f"Nivel: {entry.level}",
-            f"Hora: {entry.time_text}",
-            f"Hilo: {entry.thread}",
-            f"PID: {entry.pid}",
+            _("Nivel: {}").format(entry.level),
+            _("Hora: {}").format(entry.time_text),
+            _("Hilo: {}").format(entry.thread),
+            _("PID: {}").format(entry.pid),
             "",
-            f"Origen: {entry.source_type}",
-            f"Emisor: {entry.display_emitter}",
-            f"Módulo: {entry.module}",
-            f"Fuente: {entry.source_raw}",
+            _("Origen: {}").format(entry.source_type),
+            _("Emisor: {}").format(entry.display_emitter),
+            _("Módulo: {}").format(entry.module),
+            _("Fuente: {}").format(entry.source_raw),
             "",
-            "Encabezado:",
+            _("Encabezado:"),
             entry.header_text,
             "",
-            "Mensaje:",
-            entry.message or "(sin mensaje)",
+            _("Mensaje:"),
+            entry.message or _("(sin mensaje)"),
         ]
 
         if entry.traceback:
 
             lines.extend([
                 "",
-                "Traceback:",
+                _("Traceback:"),
             ])
 
             lines.extend(

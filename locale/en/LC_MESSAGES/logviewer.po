@@ -1,0 +1,251 @@
+# English translations for LogViewer.
+# Copyright (C) 2026 Javi Dominguez
+# This file is distributed under the same license as the LogViewer project.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: LogViewer 1.0\n"
+"POT-Creation-Date: 2026-08-30 11:34+0200\n"
+"PO-Revision-Date: 2026-08-30 11:45+0200\n"
+"Last-Translator: Javi Dominguez\n"
+"Language-Team: English\n"
+"Language: en\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: logViewer.py:337
+msgid "Visor de registros de NVDA"
+msgstr "NVDA Log Viewer"
+
+#: logViewer.py:375
+msgid "Cargando registro"
+msgstr "Loading log"
+
+#: logViewer.py:406
+msgid "&Otro archivo...\tCtrl+O"
+msgstr "&Other file...\tCtrl+O"
+
+#: logViewer.py:409
+msgid "&Cargar registro"
+msgstr "&Load log"
+
+#: logViewer.py:411
+msgid "&Recargar registro\tF5"
+msgstr "&Reload log\tF5"
+
+#: logViewer.py:415
+msgid "&Salir\tAlt+F4"
+msgstr "&Exit\tAlt+F4"
+
+#: logViewer.py:425
+msgid "&Por origen"
+msgstr "&By source"
+
+#: logViewer.py:430
+msgid "&Por nivel"
+msgstr "&By level"
+
+#: logViewer.py:435
+msgid "&Cronológico"
+msgstr "&Chronological"
+
+#: logViewer.py:444
+msgid "&Quitar filtros\tCtrl+Z"
+msgstr "&Clear filters\tCtrl+Z"
+
+#: logViewer.py:453
+msgid "&Archivo"
+msgstr "&File"
+
+#: logViewer.py:458
+msgid "&Vista"
+msgstr "&View"
+
+#: logViewer.py:477
+msgid "Filtros"
+msgstr "Filters"
+
+#: logViewer.py:480
+msgid "Filtro:"
+msgstr "Filter:"
+
+#: logViewer.py:483
+msgid "Buscar en el registro"
+msgstr "Search in log"
+
+#: logViewer.py:487
+msgid "Niveles"
+msgstr "Levels"
+
+#: logViewer.py:508
+msgid "Vista Por origen"
+msgstr "View By source"
+
+#: logViewer.py:515
+msgid "Detalle"
+msgstr "Detail"
+
+#: logViewer.py:666
+msgid "Filtros eliminados"
+msgstr "Filters cleared"
+
+#: logViewer.py:718
+msgid "activado"
+msgstr "enabled"
+
+#: logViewer.py:718
+msgid "desactivado"
+msgstr "disabled"
+
+#: logViewer.py:719
+msgid "{}, {}"
+msgstr "{}, {}"
+
+#: logViewer.py:743
+msgid "Vista por origen"
+msgstr "View by source"
+
+#: logViewer.py:743
+msgid "Vista por niveles"
+msgstr "View by levels"
+
+#: logViewer.py:743
+msgid "Vista cronológica"
+msgstr "Chronological view"
+
+#: logViewer.py:757
+msgid "Por origen"
+msgstr "By source"
+
+#: logViewer.py:757
+msgid "Por nivel"
+msgstr "By level"
+
+#: logViewer.py:757
+msgid "Cronológica"
+msgstr "Chronological"
+
+#: logViewer.py:758
+msgid "Vista {}"
+msgstr "View {}"
+
+#: logViewer.py:832
+msgid "Registro recargado"
+msgstr "Log reloaded"
+
+#: logViewer.py:832
+msgid "Registro cargado"
+msgstr "Log loaded"
+
+#: logViewer.py:833
+msgid "{}, {} entradas"
+msgstr "{}, {} entries"
+
+#: logViewer.py:836
+msgid "Visor de registros de NVDA — {}"
+msgstr "NVDA Log Viewer — {}"
+
+#: logViewer.py:957
+msgid "Registro de NVDA"
+msgstr "NVDA Log"
+
+#: logViewer.py:982
+msgid "Developer info for navigator object"
+msgstr "Developer info for navigator object"
+
+#: logViewer.py:1060
+msgid "Global Commands"
+msgstr "Global Commands"
+
+#: logViewer.py:1093
+msgid "Global Plugins"
+msgstr "Global Plugins"
+
+#: logViewer.py:1111
+msgid "App Modules"
+msgstr "App Modules"
+
+#: logViewer.py:1142
+msgid "{} ({})"
+msgstr "{} ({})"
+
+#: logViewer.py:1169
+msgid "Registro cronológico"
+msgstr "Chronological log"
+
+#: logViewer.py:1188
+msgid "{}:{} ({})"
+msgstr "{}:{} ({})"
+
+#: logViewer.py:1238
+msgid "Exportar"
+msgstr "Export"
+
+#: logViewer.py:1241
+msgid "Quitar filtros"
+msgstr "Clear filters"
+
+#: logViewer.py:1273
+msgid "Guardar registro como"
+msgstr "Save log as"
+
+#: logViewer.py:1274
+msgid "Archivo de texto (*.txt;*.log)|*.txt;*.log"
+msgstr "Text files (*.txt;*.log)|*.txt;*.log"
+
+#: logViewer.py:1338
+msgid "No se pudo encontrar VS Code instalado."
+msgstr "Could not find installed VS Code."
+
+#: logViewer.py:1339
+msgid "Error"
+msgstr "Error"
+
+#: logViewer.py:1362
+msgid "Nivel: {}"
+msgstr "Level: {}"
+
+#: logViewer.py:1363
+msgid "Hora: {}"
+msgstr "Time: {}"
+
+#: logViewer.py:1364
+msgid "Hilo: {}"
+msgstr "Thread: {}"
+
+#: logViewer.py:1365
+msgid "PID: {}"
+msgstr "PID: {}"
+
+#: logViewer.py:1367
+msgid "Origen: {}"
+msgstr "Source: {}"
+
+#: logViewer.py:1368
+msgid "Emisor: {}"
+msgstr "Emitter: {}"
+
+#: logViewer.py:1369
+msgid "Módulo: {}"
+msgstr "Module: {}"
+
+#: logViewer.py:1370
+msgid "Fuente: {}"
+msgstr "Source: {}"
+
+#: logViewer.py:1372
+msgid "Encabezado:"
+msgstr "Header:"
+
+#: logViewer.py:1375
+msgid "Mensaje:"
+msgstr "Message:"
+
+#: logViewer.py:1376
+msgid "(sin mensaje)"
+msgstr "(no message)"
+
+#: logViewer.py:1383
+msgid "Traceback:"
+msgstr "Traceback:"
