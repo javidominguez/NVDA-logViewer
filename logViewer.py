@@ -894,13 +894,13 @@ class MainFrame(wx.Frame):
             else "Sin archivo"
         )
 
-        status_text = f"{file_name} | {len(entries)} entradas"
+        status_text = _("{} | {} entradas").format(file_name, len(entries))
 
         if entries:
 
             last_entry = entries[-1]
 
-            status_text += f" | Última entrada: {last_entry.time_text}"
+            status_text += _(" | Última entrada: {}").format(last_entry.time_text)
 
         self.status.SetLabel(status_text)
 
