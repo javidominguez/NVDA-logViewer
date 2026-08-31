@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-30 11:42+0200\n"
+"POT-Creation-Date: 2026-08-31 02:22+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,246 +17,286 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: logViewer.py:337
+#: logViewer.py:327
+msgid "Ajustes"
+msgstr ""
+
+#: logViewer.py:336
+msgid "Editor de código:"
+msgstr ""
+
+#: logViewer.py:341 logViewer.py:353
+msgid "Examinar"
+msgstr ""
+
+#: logViewer.py:348
+msgid "Código fuente de NVDA:"
+msgstr ""
+
+#: logViewer.py:360
+msgid "Aceptar"
+msgstr ""
+
+#: logViewer.py:361
+msgid "Cancelar"
+msgstr ""
+
+#: logViewer.py:373
+msgid "Seleccionar editor"
+msgstr ""
+
+#: logViewer.py:373
+msgid "Ejecutables (*.exe)|*.exe"
+msgstr ""
+
+#: logViewer.py:378
+msgid "Seleccionar carpeta de NVDA"
+msgstr ""
+
+#: logViewer.py:410
 msgid "Visor de registros de NVDA"
 msgstr ""
 
-#: logViewer.py:375
+#: logViewer.py:449
 msgid "Cargando registro"
 msgstr ""
 
-#: logViewer.py:406
+#: logViewer.py:504
 msgid "&Otro archivo...\tCtrl+O"
 msgstr ""
 
-#: logViewer.py:409
+#: logViewer.py:507
 msgid "&Cargar registro"
 msgstr ""
 
-#: logViewer.py:411
+#: logViewer.py:509
 msgid "&Recargar registro\tF5"
 msgstr ""
 
-#: logViewer.py:415
-msgid "&Salir\tAlt+F4"
-msgstr ""
-
-#: logViewer.py:425
-msgid "&Por origen"
-msgstr ""
-
-#: logViewer.py:430
-msgid "&Por nivel"
-msgstr ""
-
-#: logViewer.py:435
-msgid "&Cronológico"
-msgstr ""
-
-#: logViewer.py:444
-msgid "&Quitar filtros\tCtrl+Z"
-msgstr ""
-
-#: logViewer.py:453
-msgid "&Archivo"
-msgstr ""
-
-#: logViewer.py:458
-msgid "&Vista"
-msgstr ""
-
-#: logViewer.py:477
-msgid "Filtros"
-msgstr ""
-
-#: logViewer.py:480
-msgid "Filtro:"
-msgstr ""
-
-#: logViewer.py:483
-msgid "Buscar en el registro"
-msgstr ""
-
-#: logViewer.py:487
-msgid "Niveles"
-msgstr ""
-
-#: logViewer.py:508
-msgid "Vista Por origen"
+#: logViewer.py:511
+msgid "&Ajustes\tCtrl+S"
 msgstr ""
 
 #: logViewer.py:515
+msgid "&Salir\tCtrl+Q"
+msgstr ""
+
+#: logViewer.py:525
+msgid "&Por origen"
+msgstr ""
+
+#: logViewer.py:530
+msgid "&Por nivel"
+msgstr ""
+
+#: logViewer.py:535
+msgid "&Cronológico"
+msgstr ""
+
+#: logViewer.py:544
+msgid "&Quitar filtros\tCtrl+Z"
+msgstr ""
+
+#: logViewer.py:553
+msgid "&Archivo"
+msgstr ""
+
+#: logViewer.py:558
+msgid "&Vista"
+msgstr ""
+
+#: logViewer.py:577
+msgid "Filtros"
+msgstr ""
+
+#: logViewer.py:580
+msgid "Filtro:"
+msgstr ""
+
+#: logViewer.py:583
+msgid "Buscar en el registro"
+msgstr ""
+
+#: logViewer.py:587
+msgid "Niveles"
+msgstr ""
+
+#: logViewer.py:608
+msgid "Vista Por origen"
+msgstr ""
+
+#: logViewer.py:615
 msgid "Detalle"
 msgstr ""
 
-#: logViewer.py:666
+#: logViewer.py:772
 msgid "Filtros eliminados"
 msgstr ""
 
-#: logViewer.py:718
+#: logViewer.py:824
 msgid "activado"
 msgstr ""
 
-#: logViewer.py:718
+#: logViewer.py:824
 msgid "desactivado"
 msgstr ""
 
-#: logViewer.py:719
+#: logViewer.py:825
 msgid "{}, {}"
 msgstr ""
 
-#: logViewer.py:743
+#: logViewer.py:849
 msgid "Vista por origen"
 msgstr ""
 
-#: logViewer.py:743
+#: logViewer.py:849
 msgid "Vista por niveles"
 msgstr ""
 
-#: logViewer.py:743
+#: logViewer.py:849
 msgid "Vista cronológica"
 msgstr ""
 
-#: logViewer.py:757
+#: logViewer.py:863
 msgid "Por origen"
 msgstr ""
 
-#: logViewer.py:757
+#: logViewer.py:863
 msgid "Por nivel"
 msgstr ""
 
-#: logViewer.py:757
+#: logViewer.py:863
 msgid "Cronológica"
 msgstr ""
 
-#: logViewer.py:758
+#: logViewer.py:864
 msgid "Vista {}"
 msgstr ""
 
-#: logViewer.py:832
+#: logViewer.py:938
 msgid "Registro recargado"
 msgstr ""
 
-#: logViewer.py:832
+#: logViewer.py:938
 msgid "Registro cargado"
 msgstr ""
 
-#: logViewer.py:833
+#: logViewer.py:939
 msgid "{}, {} entradas"
 msgstr ""
 
-#: logViewer.py:836
+#: logViewer.py:942
 msgid "Visor de registros de NVDA — {}"
 msgstr ""
 
-#: logViewer.py:897
+#: logViewer.py:1003
 msgid "{} | {} entradas"
 msgstr ""
 
-#: logViewer.py:903
+#: logViewer.py:1009
 msgid " | Última entrada: {}"
 msgstr ""
 
-#: logViewer.py:957
+#: logViewer.py:1063
 msgid "Registro de NVDA"
 msgstr ""
 
-#: logViewer.py:982
+#: logViewer.py:1088
 msgid "Developer info for navigator object"
 msgstr ""
 
-#: logViewer.py:1060
+#: logViewer.py:1166
 msgid "Global Commands"
 msgstr ""
 
-#: logViewer.py:1093
+#: logViewer.py:1199
 msgid "Global Plugins"
 msgstr ""
 
-#: logViewer.py:1111
+#: logViewer.py:1217
 msgid "App Modules"
 msgstr ""
 
-#: logViewer.py:1142
+#: logViewer.py:1248
 msgid "{} ({})"
 msgstr ""
 
-#: logViewer.py:1169
+#: logViewer.py:1275
 msgid "Registro cronológico"
 msgstr ""
 
-#: logViewer.py:1188
+#: logViewer.py:1294
 msgid "{}:{} ({})"
 msgstr ""
 
-#: logViewer.py:1238
+#: logViewer.py:1342
 msgid "Exportar"
 msgstr ""
 
-#: logViewer.py:1241
+#: logViewer.py:1345
 msgid "Quitar filtros"
 msgstr ""
 
-#: logViewer.py:1273
+#: logViewer.py:1377
 msgid "Guardar registro como"
 msgstr ""
 
-#: logViewer.py:1274
+#: logViewer.py:1378
 msgid "Archivo de texto (*.txt;*.log)|*.txt;*.log"
 msgstr ""
 
-#: logViewer.py:1338
-msgid "No se pudo encontrar VS Code instalado."
+#: logViewer.py:1465
+msgid "No se pudo encontrar el editor configurado."
 msgstr ""
 
-#: logViewer.py:1339
+#: logViewer.py:1466
 msgid "Error"
 msgstr ""
 
-#: logViewer.py:1362
+#: logViewer.py:1489
 msgid "Nivel: {}"
 msgstr ""
 
-#: logViewer.py:1363
+#: logViewer.py:1490
 msgid "Hora: {}"
 msgstr ""
 
-#: logViewer.py:1364
+#: logViewer.py:1491
 msgid "Hilo: {}"
 msgstr ""
 
-#: logViewer.py:1365
+#: logViewer.py:1492
 msgid "PID: {}"
 msgstr ""
 
-#: logViewer.py:1367
+#: logViewer.py:1494
 msgid "Origen: {}"
 msgstr ""
 
-#: logViewer.py:1368
+#: logViewer.py:1495
 msgid "Emisor: {}"
 msgstr ""
 
-#: logViewer.py:1369
+#: logViewer.py:1496
 msgid "Módulo: {}"
 msgstr ""
 
-#: logViewer.py:1370
+#: logViewer.py:1497
 msgid "Fuente: {}"
 msgstr ""
 
-#: logViewer.py:1372
+#: logViewer.py:1499
 msgid "Encabezado:"
 msgstr ""
 
-#: logViewer.py:1375
+#: logViewer.py:1502
 msgid "Mensaje:"
 msgstr ""
 
-#: logViewer.py:1376
+#: logViewer.py:1503
 msgid "(sin mensaje)"
 msgstr ""
 
-#: logViewer.py:1383
+#: logViewer.py:1510
 msgid "Traceback:"
 msgstr ""

@@ -14,6 +14,42 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: logViewer.py:126
+msgid "Ajustes"
+msgstr "Settings"
+
+#: logViewer.py:133
+msgid "Editor de código:"
+msgstr "Code editor:"
+
+#: logViewer.py:136 logViewer.py:145
+msgid "Examinar"
+msgstr "Browse"
+
+#: logViewer.py:142
+msgid "Código fuente de NVDA:"
+msgstr "NVDA source code:"
+
+#: logViewer.py:151
+msgid "Aceptar"
+msgstr "OK"
+
+#: logViewer.py:152
+msgid "Cancelar"
+msgstr "Cancel"
+
+#: logViewer.py:163
+msgid "Seleccionar editor"
+msgstr "Select editor"
+
+#: logViewer.py:163
+msgid "Ejecutables (*.exe)|*.exe"
+msgstr "Executables (*.exe)|*.exe"
+
+#: logViewer.py:169
+msgid "Seleccionar carpeta de NVDA"
+msgstr "Select NVDA folder"
+
 #: logViewer.py:337
 msgid "Visor de registros de NVDA"
 msgstr "NVDA Log Viewer"
@@ -34,9 +70,13 @@ msgstr "&Load log"
 msgid "&Recargar registro\tF5"
 msgstr "&Reload log\tF5"
 
-#: logViewer.py:415
-msgid "&Salir\tAlt+F4"
-msgstr "&Exit\tAlt+F4"
+#: logViewer.py:413
+msgid "&Ajustes\tCtrl+S"
+msgstr "&Settings\tCtrl+S"
+
+#: logViewer.py:417
+msgid "&Salir\tCtrl+Q"
+msgstr "&Exit\tCtrl+Q"
 
 #: logViewer.py:425
 msgid "&Por origen"
@@ -203,8 +243,8 @@ msgid "Archivo de texto (*.txt;*.log)|*.txt;*.log"
 msgstr "Text files (*.txt;*.log)|*.txt;*.log"
 
 #: logViewer.py:1338
-msgid "No se pudo encontrar VS Code instalado."
-msgstr "Could not find installed VS Code."
+msgid "No se pudo encontrar el editor configurado."
+msgstr "Could not find the configured editor."
 
 #: logViewer.py:1339
 msgid "Error"
