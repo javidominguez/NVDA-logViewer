@@ -11,7 +11,9 @@ El menú contextual del árbol tiene las opciones
 - Exportar que guarda en un archivo de texto el contenido de la rama que cuelga del nodo seleccionado.
 - Quitar filtro (control+Z) que limpia los filtros aplicados 
 
-En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre una línea que haga referencia a un archivo .py y se pulsa la barra espaciadora se abrirá dicho archivo en la línea exacta a la que hace referencia el Traceback (sólo en vsCode, de momento no soporta otros editores).
+En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre una línea que haga referencia a un archivo .py y se pulsa la barra espaciadora se abrirá dicho archivo en el editor seleccionado en ajustes.
+Si en los ajustes se ha definido la ruta a una carpeta local con el código fuente de NVDA, también se abrirá en el editor el archivo correspondiente al .pyc indicado en el tracebak.
+Si el editor definido en ajustes es vsCode los archivos se abrirán en la línea exacta. Otros editores no soportan esta caracteristica.
 
 ### Atajos de teclado
 
@@ -19,8 +21,8 @@ En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre un
 * F5 recarga el archivo abierto.
 * F6 cambia entre la vista en árborl por origen de los mensajes, la vista por niveles  y la vista cronológica.
 * control+F lleva el foco al cuadro de edición de filtro.
-Con el foco en el árbol, control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
+* Con el foco en el árbol, control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
 * control+Z quita los filtros aplicados
 * clic derecho o tecla aplicaciones en el árbol abre el menú contextual
-* alt+F4 cierra la aplicación
+* alt+F4 o control+Q cierra la aplicación
 

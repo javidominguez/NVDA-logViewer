@@ -3,6 +3,7 @@ import shutil
 import os
 import re
 import wx
+import json
 import nvdaControllerClient
 import l10n
 from l10n import _
@@ -321,6 +322,78 @@ class LogModel:
         return result
 
 
+class SettingsDialog(wx.Dialog):
+    def __init__(self, parent, settings):
+        super().__init__(parent, title=_("Ajustes"))
+        self.settings = settings
+        self.init_ui()
+
+    def init_ui(self):
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        
+        # Sizer para el Editor
+        editor_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        editor_sizer.Add(wx.StaticText(self, label=_("Editor de código:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        # Bloquear escritura manual, pero permitir foco, selección y cursores
+        self.editor_path = wx.TextCtrl(self, value=self.settings.get('code_editor', ''))
+        self.editor_path.Bind(wx.EVT_CHAR, self.on_text_char)
+        editor_sizer.Add(self.editor_path, 1, wx.EXPAND | wx.ALL, 5)
+        browse_editor = wx.Button(self, label=_("Examinar"))
+        browse_editor.Bind(wx.EVT_BUTTON, self.on_browse_editor)
+        editor_sizer.Add(browse_editor, 0, wx.ALL, 5)
+        sizer.Add(editor_sizer, 0, wx.EXPAND)
+
+        # Sizer para el Código fuente de NVDA
+        nvda_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        nvda_sizer.Add(wx.StaticText(self, label=_("Código fuente de NVDA:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.nvda_path = wx.TextCtrl(self, value=self.settings.get('nvda_source', ''))
+        # Bloquear escritura manual, pero permitir foco, selección y cursores
+        self.nvda_path.Bind(wx.EVT_CHAR, self.on_text_char)
+        nvda_sizer.Add(self.nvda_path, 1, wx.EXPAND | wx.ALL, 5)
+        browse_nvda = wx.Button(self, label=_("Examinar"))
+        browse_nvda.Bind(wx.EVT_BUTTON, self.on_browse_nvda)
+        nvda_sizer.Add(browse_nvda, 0, wx.ALL, 5)
+        sizer.Add(nvda_sizer, 0, wx.EXPAND)
+
+        # Botones Aceptar y Cancelar traducibles
+        btn_sizer = wx.StdDialogButtonSizer()
+        btn_ok = wx.Button(self, wx.ID_OK, label=_("Aceptar"))
+        btn_cancel = wx.Button(self, wx.ID_CANCEL, label=_("Cancelar"))
+        btn_sizer.AddButton(btn_ok)
+        btn_sizer.AddButton(btn_cancel)
+        btn_sizer.Realize()
+        
+        sizer.Add(btn_sizer, 0, wx.ALIGN_RIGHT | wx.ALL, 10)
+        
+        self.SetSizer(sizer)
+        self.Fit()
+        self.Centre()
+
+    def on_browse_editor(self, event):
+        with wx.FileDialog(self, _("Seleccionar editor"), wildcard=_("Ejecutables (*.exe)|*.exe"), style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.editor_path.SetValue(dlg.GetPath())
+
+    def on_browse_nvda(self, event):
+        with wx.DirDialog(self, _("Seleccionar carpeta de NVDA")) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.nvda_path.SetValue(dlg.GetPath())
+        
+    def get_values(self):
+        return {
+            'code_editor': self.editor_path.GetValue(),
+            'nvda_source': self.nvda_path.GetValue()
+        }
+
+    def on_text_char(self, event):
+        key = event.GetKeyCode()
+        # Permitir flechas (izquierda y derecha), y control+c (para copiar)
+        if key in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_HOME, wx.WXK_END) or (event.ControlDown() and key == ord('C')):
+            event.Skip()
+        else:
+            # Ignorar todas las demás teclas
+            return
+
 # ============================================================================
 # VENTANA PRINCIPAL
 # ============================================================================
@@ -339,6 +412,7 @@ class MainFrame(wx.Frame):
         )
 
         self.model = LogModel()
+        self.settings = self.load_settings()
 
         # Nodo del árbol -> LogEntry
         self.tree_entries = {}
@@ -375,6 +449,30 @@ class MainFrame(wx.Frame):
             self.speak(_("Cargando registro"))
             self.load_file(temp_log)
 
+    def load_settings(self):
+        path = Path("settings.json")
+        if path.exists():
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        
+        # Initial setup if not exists
+        settings = {
+            'code_editor': str(self.get_vscode_path() or ''),
+            'nvda_source': ''
+        }
+        return settings
+    
+    def save_settings(self, settings):
+        with Path("settings.json").open("w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=4)
+        self.settings = settings
+    
+    def on_settings(self, event):
+        dlg = SettingsDialog(self, self.settings)
+        if dlg.ShowModal() == wx.ID_OK:
+            self.save_settings(dlg.get_values())
+        dlg.Destroy()
+
     # ========================================================================
     # MENÚ
     # ========================================================================
@@ -410,9 +508,11 @@ class MainFrame(wx.Frame):
 
         self.reload_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Recargar registro\tF5")))
 
+        self.settings_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Ajustes\tCtrl+S")))
+
         file_menu.AppendSeparator()
 
-        self.exit_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_EXIT, _("&Salir\tAlt+F4")))
+        self.exit_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_EXIT, _("&Salir\tCtrl+Q")))
 
         # ----------------------------------------------------------------
         # Vista
@@ -556,6 +656,12 @@ class MainFrame(wx.Frame):
             wx.EVT_MENU,
             self.on_reload,
             self.reload_item,
+        )
+
+        self.Bind(
+            wx.EVT_MENU,
+            self.on_settings,
+            self.settings_item,
         )
 
         self.Bind(
@@ -1198,8 +1304,6 @@ class MainFrame(wx.Frame):
         if child.IsOk():
             self.tree.SelectItem(child)
             self.tree.SetFocus()
-# ... (rest of code needs more replacements)
-
     # ========================================================================
     # TEXTO DE LAS ENTRADAS
     # ========================================================================
@@ -1323,19 +1427,42 @@ class MainFrame(wx.Frame):
             match = TRACEBACK_FILE_RE.search(line_text)
 
             if match:
-                path = Path(match.group("path"))
+                path_str = match.group("path")
                 line = match.group("line")
+                path = Path(path_str)
 
-                if path.exists():
+                # Si no existe, intentar buscar en fuente de NVDA si es .pyc
+                target_path = None
+                if not path.exists() and path.suffix == ".pyc":
+                    nvda_source = self.settings.get('nvda_source')
+                    if nvda_source:
+                        # La estrategia es simple: unir la base de la fuente configurada
+                        # con la ruta relativa completa del traceback, cambiando .pyc por .py
+                        # Si el log trae 'comtypes/_vtbl.pyc', target_path será
+                        # 'C:\...\source\comtypes\_vtbl.py'
+                        
+                        relative_part = path.with_suffix('.py')
+                        target_path = Path(nvda_source) / relative_part
+                    
+                    print(f"Depuración - Path original: {path}, Path destino calculado: {target_path}")
+                
+                final_path = target_path if (target_path and target_path.exists()) else (path if path.exists() else None)
 
-                    vscode = self.get_vscode_path()
+                if final_path:
+                    vscode_path = self.settings.get('code_editor')
+                    vscode = Path(vscode_path) if vscode_path else self.get_vscode_path()
 
                     if vscode and vscode.exists():
-                        os.system(f'start "" "{vscode}" -g "{path}:{line}"')
+                        # Detectar si es VS Code por el nombre del ejecutable
+                        # Envolver las rutas entre comillas para manejar espacios
+                        if vscode.name.lower() in ("code.exe", "code"):
+                            os.system(f'start "" "{vscode}" -g "{final_path}:{line}"')
+                        else:
+                            os.system(f'start "" "{vscode}" "{final_path}"')
                         return
                     else:
                         wx.MessageBox(
-                            _("No se pudo encontrar VS Code instalado."),
+                            _("No se pudo encontrar el editor configurado."),
                             _("Error"),
                             wx.OK | wx.ICON_ERROR,
                         )
