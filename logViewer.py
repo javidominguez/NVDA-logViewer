@@ -1621,7 +1621,24 @@ class MainFrame(wx.Frame):
             self.tree.EnsureVisible(target)
             self.tree.SetFocus()
         else:
-            self.speak(_("No se pudo encontrar el marcador en la vista actual"))
+            # Comprobar si hay filtros activos
+            filters_active = self.text_filter.GetValue() != "" or any(not checkbox.GetValue() for checkbox in self.level_checks.values())
+            
+            if filters_active:
+                msg = _("No se puede acceder al marcador con este filtro aplicado. ¿Quieres quitar el filtro?")
+                dlg = wx.MessageDialog(self, msg, _("Marcador no encontrado"), wx.YES_NO | wx.ICON_QUESTION)
+                if dlg.ShowModal() == wx.ID_YES:
+                    self.on_clear_filters(None)
+                    # Intentar buscar de nuevo después de limpiar filtros
+                    target = find_node(root)
+                    if target:
+                        self.tree.SelectItem(target)
+                        self.tree.EnsureVisible(target)
+                        self.tree.SetFocus()
+                    else:
+                        self.speak(_("No se pudo encontrar el marcador"))
+            else:
+                self.speak(_("No se pudo encontrar el marcador en la vista actual"))
 
     def get_all_entries_under_node(self, node):
 
