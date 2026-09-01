@@ -4,6 +4,7 @@ import os
 import re
 import wx
 import json
+import hashlib
 import nvdaControllerClient
 import l10n
 from l10n import _
@@ -417,6 +418,9 @@ class MainFrame(wx.Frame):
         # Nodo del árbol -> LogEntry
         self.tree_entries = {}
         self.bookmarks = []
+        self.bookmarks_folder = Path("bookmarks")
+        self.bookmarks_folder.mkdir(exist_ok=True)
+        self.current_log_hash = None
 
         # Flag para saber si los filtros han cambiado
         self.filters_dirty = False
@@ -449,6 +453,59 @@ class MainFrame(wx.Frame):
 
             self.speak(_("Cargando registro"))
             self.load_file(temp_log)
+
+    def get_log_hash(self, path):
+        """Calcula el hash MD5 de los primeros 512 caracteres del archivo."""
+        if not path.exists():
+            return None
+        
+        with path.open("rb") as f:
+            content = f.read(512)
+        return hashlib.md5(content).hexdigest()
+
+    def load_bookmarks(self):
+        """Carga marcadores para el log actual."""
+        # Limpiar menú de marcadores
+        while self.bookmarks_menu.GetMenuItemCount() > 0:
+            item = self.bookmarks_menu.FindItemByPosition(0)
+            self.bookmarks_menu.Remove(item)
+            
+        self.bookmarks = []
+        
+        if not self.current_log_hash:
+            return
+            
+        bookmark_file = self.bookmarks_folder / self.current_log_hash
+        if not bookmark_file.exists():
+            return
+            
+        with bookmark_file.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            
+        # Reconstruir el menú
+        for entry in data:
+            signature = entry['signature']
+            # Necesitamos reconstruir la etiqueta para el menú. 
+            # Si el marcador es de tipo group, signature['path'] tiene la etiqueta.
+            # Si es de tipo entry, es más complejo, usaremos el path si existe o una etiqueta genérica.
+            label = signature.get('path') or f"Entry {signature.get('id')}"
+            
+            bookmark_id = wx.NewIdRef()
+            bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
+            self.Bind(wx.EVT_MENU, lambda e, sig=signature: self.on_bookmark_selected(sig), bookmark_item)
+            
+            self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
+
+    def save_bookmarks(self):
+        """Guarda los marcadores actuales en un archivo."""
+        if not self.current_log_hash:
+            return
+            
+        bookmark_file = self.bookmarks_folder / self.current_log_hash
+        data = [{'signature': b['signature']} for b in self.bookmarks]
+        
+        with bookmark_file.open("w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
 
     def load_settings(self):
         path = Path("settings.json")
@@ -953,6 +1010,10 @@ class MainFrame(wx.Frame):
         is_reload = (self.current_file_path == path)
         self.current_file_path = path
 
+        # Persistencia de marcadores
+        self.current_log_hash = self.get_log_hash(path)
+        self.load_bookmarks()
+
         self.refresh()
 
         message = _("Registro recargado") if is_reload else _("Registro cargado")
@@ -1413,6 +1474,7 @@ class MainFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, lambda e: self.on_bookmark_selected(signature), bookmark_item)
         
         self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
+        self.save_bookmarks()
         self.speak(_("Marcador añadido"))
 
     def on_remove_bookmark(self, signature):
@@ -1420,6 +1482,7 @@ class MainFrame(wx.Frame):
         if bookmark:
             self.bookmarks_menu.Remove(bookmark['menu_id'])
             self.bookmarks.remove(bookmark)
+            self.save_bookmarks()
             self.speak(_("Marcador eliminado"))
 
     def on_toggle_bookmark(self, node):
