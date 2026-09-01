@@ -1591,37 +1591,67 @@ class MainFrame(wx.Frame):
             self.on_add_bookmark(node)
 
     def on_bookmark_selected(self, signature):
-        # 1. Cambiar la vista
+        # 1. Guardar estado inicial (vista y selección) como "marcador temporal"
+        initial_selection = self.tree.GetSelection()
+        initial_signature = self.get_node_signature(initial_selection) if initial_selection.IsOk() else None
+        
+        # Helper para restaurar el estado inicial
+        def restore_initial_state():
+            if initial_signature:
+                # Restaurar vista
+                if self.current_view != initial_signature['view']:
+                    self.change_view(initial_signature['view'])
+                    self.source_view_item.Check(self.current_view == "source")
+                    self.level_view_item.Check(self.current_view == "level")
+                    self.time_view_item.Check(self.current_view == "time")
+                
+                # Restaurar selección
+                root = self.tree.GetRootItem()
+                def find_node_by_sig(node, target_sig):
+                    if self.get_node_signature(node) == target_sig:
+                        return node
+                    child, cookie = self.tree.GetFirstChild(node)
+                    while child.IsOk():
+                        found = find_node_by_sig(child, target_sig)
+                        if found: return found
+                        child, cookie = self.tree.GetNextChild(node, cookie)
+                    return None
+                    
+                target = find_node_by_sig(root, initial_signature)
+                if target:
+                    self.tree.SelectItem(target)
+                    self.tree.EnsureVisible(target)
+                    self.tree.SetFocus()
+
+        # 2. Intentar navegar al marcador destino
+        # Cambiar vista
         if self.current_view != signature['view']:
             self.change_view(signature['view'])
-            # Actualizar radio buttons del menú
             self.source_view_item.Check(self.current_view == "source")
             self.level_view_item.Check(self.current_view == "level")
             self.time_view_item.Check(self.current_view == "time")
 
-        # 2. Buscar el nodo
+        # Buscar el nodo
         root = self.tree.GetRootItem()
-        
         def find_node(node):
-            # Comparamos la firma generada dinámicamente con la guardada
             if self.get_node_signature(node) == signature:
                 return node
-            
             child, cookie = self.tree.GetFirstChild(node)
             while child.IsOk():
                 found = find_node(child)
-                if found:
-                    return found
+                if found: return found
                 child, cookie = self.tree.GetNextChild(node, cookie)
             return None
             
         target = find_node(root)
+        
         if target:
             self.tree.SelectItem(target)
             self.tree.EnsureVisible(target)
             self.tree.SetFocus()
+            # Éxito: el estado temporal se descarta implícitamente
         else:
-            # Comprobar si hay filtros activos
+            # Comprobar filtros
             filters_active = self.text_filter.GetValue() != "" or any(not checkbox.GetValue() for checkbox in self.level_checks.values())
             
             if filters_active:
@@ -1629,16 +1659,19 @@ class MainFrame(wx.Frame):
                 dlg = wx.MessageDialog(self, msg, _("Marcador no encontrado"), wx.YES_NO | wx.ICON_QUESTION)
                 if dlg.ShowModal() == wx.ID_YES:
                     self.on_clear_filters(None)
-                    # Intentar buscar de nuevo después de limpiar filtros
+                    # Intentar buscar de nuevo
                     target = find_node(root)
                     if target:
                         self.tree.SelectItem(target)
                         self.tree.EnsureVisible(target)
                         self.tree.SetFocus()
-                    else:
-                        self.speak(_("No se pudo encontrar el marcador"))
-            else:
-                self.speak(_("No se pudo encontrar el marcador en la vista actual"))
+                        return # Éxito
+            
+            # Fallo o usuario dijo no
+            self.speak(_("No se pudo encontrar el marcador en la vista actual"))
+            restore_initial_state()
+
+
 
     def get_all_entries_under_node(self, node):
 
