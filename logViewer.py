@@ -416,6 +416,7 @@ class MainFrame(wx.Frame):
 
         # Nodo del árbol -> LogEntry
         self.tree_entries = {}
+        self.bookmarks = []
 
         # Flag para saber si los filtros han cambiado
         self.filters_dirty = False
@@ -545,6 +546,12 @@ class MainFrame(wx.Frame):
         )
 
         # ----------------------------------------------------------------
+        # Marcadores
+        # ----------------------------------------------------------------
+
+        self.bookmarks_menu = wx.Menu()
+
+        # ----------------------------------------------------------------
         # Añadir menús
         # ----------------------------------------------------------------
 
@@ -556,6 +563,11 @@ class MainFrame(wx.Frame):
         menubar.Append(
             view_menu,
             _("&Vista"),
+        )
+
+        menubar.Append(
+            self.bookmarks_menu,
+            _("&Marcadores"),
         )
 
         self.SetMenuBar(menubar)
@@ -1337,6 +1349,9 @@ class MainFrame(wx.Frame):
 
         menu = wx.Menu()
 
+        bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
+        self.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
+
         if self.current_view in ("source", "level", "time"):
 
             export_item = menu.Append(wx.ID_ANY, _("Exportar"))
@@ -1347,6 +1362,75 @@ class MainFrame(wx.Frame):
 
         self.PopupMenu(menu)
         menu.Destroy()
+    
+    def get_node_path(self, node):
+        """Obtiene la ruta jerárquica de un nodo."""
+        path = []
+        current = node
+        while current.IsOk() and current != self.tree.GetRootItem():
+            path.insert(0, self.tree.GetItemText(current))
+            current = self.tree.GetItemParent(current)
+        return "/".join(path)
+
+    def get_node_signature(self, node):
+        """Genera una firma única para un nodo, incluyendo la vista."""
+        if node == self.tree.GetRootItem():
+            return {"type": "root", "view": self.current_view}
+            
+        signature = {"view": self.current_view}
+        if node in self.tree_entries:
+            signature.update({"type": "entry", "id": self.tree_entries[node].id})
+        else:
+            signature.update({"type": "group", "label": self.tree.GetItemText(node), "path": self.get_node_path(node)})
+        return signature
+
+    def on_add_bookmark(self, node):
+        signature = self.get_node_signature(node)
+        label = self.get_node_path(node) # Usamos la ruta completa
+        
+        # Evitar duplicados
+        if any(b['signature'] == signature for b in self.bookmarks):
+            self.speak(_("Ya existe ese marcador"))
+            return
+            
+        bookmark_id = wx.NewIdRef()
+        bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
+        self.Bind(wx.EVT_MENU, lambda e: self.on_bookmark_selected(signature), bookmark_item)
+        
+        self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
+        self.speak(_("Marcador añadido"))
+
+    def on_bookmark_selected(self, signature):
+        # 1. Cambiar la vista
+        if self.current_view != signature['view']:
+            self.change_view(signature['view'])
+            # Actualizar radio buttons del menú
+            self.source_view_item.Check(self.current_view == "source")
+            self.level_view_item.Check(self.current_view == "level")
+            self.time_view_item.Check(self.current_view == "time")
+
+        # 2. Buscar el nodo
+        root = self.tree.GetRootItem()
+        
+        def find_node(node):
+            if self.get_node_signature(node) == signature:
+                return node
+            
+            child, cookie = self.tree.GetFirstChild(node)
+            while child.IsOk():
+                found = find_node(child)
+                if found:
+                    return found
+                child, cookie = self.tree.GetNextChild(node, cookie)
+            return None
+            
+        target = find_node(root)
+        if target:
+            self.tree.SelectItem(target)
+            self.tree.EnsureVisible(target)
+            self.tree.SetFocus()
+        else:
+            self.speak(_("No se pudo encontrar el marcador en la vista actual"))
 
     def get_all_entries_under_node(self, node):
 
