@@ -1,6 +1,7 @@
 from pathlib import Path
 import shutil
 import os
+import time
 import re
 import wx
 import json
@@ -335,7 +336,6 @@ class SettingsDialog(wx.Dialog):
         # Sizer para el Editor
         editor_sizer = wx.BoxSizer(wx.HORIZONTAL)
         editor_sizer.Add(wx.StaticText(self, label=_("Editor de código:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
-        # Bloquear escritura manual, pero permitir foco, selección y cursores
         self.editor_path = wx.TextCtrl(self, value=self.settings.get('code_editor', ''))
         self.editor_path.Bind(wx.EVT_CHAR, self.on_text_char)
         editor_sizer.Add(self.editor_path, 1, wx.EXPAND | wx.ALL, 5)
@@ -348,7 +348,6 @@ class SettingsDialog(wx.Dialog):
         nvda_sizer = wx.BoxSizer(wx.HORIZONTAL)
         nvda_sizer.Add(wx.StaticText(self, label=_("Código fuente de NVDA:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
         self.nvda_path = wx.TextCtrl(self, value=self.settings.get('nvda_source', ''))
-        # Bloquear escritura manual, pero permitir foco, selección y cursores
         self.nvda_path.Bind(wx.EVT_CHAR, self.on_text_char)
         nvda_sizer.Add(self.nvda_path, 1, wx.EXPAND | wx.ALL, 5)
         browse_nvda = wx.Button(self, label=_("Examinar"))
@@ -356,7 +355,26 @@ class SettingsDialog(wx.Dialog):
         nvda_sizer.Add(browse_nvda, 0, wx.ALL, 5)
         sizer.Add(nvda_sizer, 0, wx.EXPAND)
 
-        # Botones Aceptar y Cancelar traducibles
+        # Sizer para Carpeta de marcadores
+        bookmarks_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        bookmarks_sizer.Add(wx.StaticText(self, label=_("Carpeta de marcadores:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.bookmarks_path = wx.TextCtrl(self, value=self.settings.get('bookmarks_folder', 'bookmarks'))
+        self.bookmarks_path.Bind(wx.EVT_CHAR, self.on_text_char)
+        bookmarks_sizer.Add(self.bookmarks_path, 1, wx.EXPAND | wx.ALL, 5)
+        browse_bookmarks = wx.Button(self, label=_("Examinar"))
+        browse_bookmarks.Bind(wx.EVT_BUTTON, self.on_browse_bookmarks)
+        bookmarks_sizer.Add(browse_bookmarks, 0, wx.ALL, 5)
+        sizer.Add(bookmarks_sizer, 0, wx.EXPAND)
+
+        # Sizer para Limpieza
+        cleanup_sizer = wx.BoxSizer(wx.HORIZONTAL)
+        cleanup_sizer.Add(wx.StaticText(self, label=_("Limpiar marcadores no usados en:")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        self.cleanup_days = wx.SpinCtrl(self, value=str(self.settings.get('cleanup_days', 90)), min=1, max=365)
+        cleanup_sizer.Add(self.cleanup_days, 0, wx.ALL, 5)
+        cleanup_sizer.Add(wx.StaticText(self, label=_("Días")), 0, wx.ALIGN_CENTER_VERTICAL | wx.ALL, 5)
+        sizer.Add(cleanup_sizer, 0, wx.EXPAND)
+
+        # Botones Aceptar y Cancelar
         btn_sizer = wx.StdDialogButtonSizer()
         btn_ok = wx.Button(self, wx.ID_OK, label=_("Aceptar"))
         btn_cancel = wx.Button(self, wx.ID_CANCEL, label=_("Cancelar"))
@@ -380,10 +398,17 @@ class SettingsDialog(wx.Dialog):
             if dlg.ShowModal() == wx.ID_OK:
                 self.nvda_path.SetValue(dlg.GetPath())
         
+    def on_browse_bookmarks(self, event):
+        with wx.DirDialog(self, _("Seleccionar carpeta de marcadores")) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                self.bookmarks_path.SetValue(dlg.GetPath())
+        
     def get_values(self):
         return {
             'code_editor': self.editor_path.GetValue(),
-            'nvda_source': self.nvda_path.GetValue()
+            'nvda_source': self.nvda_path.GetValue(),
+            'bookmarks_folder': self.bookmarks_path.GetValue(),
+            'cleanup_days': self.cleanup_days.GetValue()
         }
 
     def on_text_char(self, event):
@@ -414,12 +439,15 @@ class MainFrame(wx.Frame):
 
         self.model = LogModel()
         self.settings = self.load_settings()
-
-        # Nodo del árbol -> LogEntry
         self.tree_entries = {}
-        self.bookmarks = []
-        self.bookmarks_folder = Path("bookmarks")
+
+        # Configuración de marcadores
+        bookmarks_folder_path = self.settings.get('bookmarks_folder', 'bookmarks')
+        self.bookmarks_folder = Path(bookmarks_folder_path)
         self.bookmarks_folder.mkdir(exist_ok=True)
+        
+        self.cleanup_old_bookmarks()
+
         self.current_log_hash = None
 
         # Flag para saber si los filtros han cambiado
@@ -481,6 +509,7 @@ class MainFrame(wx.Frame):
             
         with bookmark_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
+        os.utime(bookmark_file, (time.time(), time.time()))
             
         # Reconstruir el menú
         for entry in data:
@@ -518,16 +547,19 @@ class MainFrame(wx.Frame):
         }
         return settings
     
-    def save_settings(self, settings):
-        with Path("settings.json").open("w", encoding="utf-8") as f:
-            json.dump(settings, f, indent=4)
-        self.settings = settings
-    
-    def on_settings(self, event):
-        dlg = SettingsDialog(self, self.settings)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.save_settings(dlg.get_values())
-        dlg.Destroy()
+    def cleanup_old_bookmarks(self):
+        """Borra marcadores que no se han modificado en X días."""
+        days = self.settings.get('cleanup_days', 90)
+        now = datetime.now()
+        
+        for file in self.bookmarks_folder.glob("*"):
+            if not file.is_file():
+                continue
+                
+            # Usar tiempo de modificación
+            mtime = datetime.fromtimestamp(file.stat().st_mtime)
+            if (now - mtime).days > days:
+                file.unlink()
 
     # ========================================================================
     # MENÚ
@@ -979,6 +1011,21 @@ class MainFrame(wx.Frame):
         if self.current_file_path and self.current_file_path.exists():
 
             self.load_file(self.current_file_path)
+
+    def save_settings(self, settings):
+        with open("settings.json", "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=4)
+        self.settings = settings
+
+    def on_settings(self, event):
+        with SettingsDialog(self, self.settings) as dlg:
+            if dlg.ShowModal() == wx.ID_OK:
+                new_settings = dlg.get_values()
+                self.save_settings(new_settings)
+                
+                if 'bookmarks_folder' in new_settings:
+                    self.bookmarks_folder = Path(new_settings['bookmarks_folder'])
+                    self.bookmarks_folder.mkdir(exist_ok=True)
 
     def load_file(self, path):
 
