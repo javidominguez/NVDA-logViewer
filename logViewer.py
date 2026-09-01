@@ -10,6 +10,9 @@ import nvdaControllerClient
 import l10n
 from l10n import _
 
+import markdown
+import webbrowser
+
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -888,27 +891,28 @@ class MainFrame(wx.Frame):
         key_code = event.GetKeyCode()
         control_down = event.ControlDown()
 
+        # F1: Abrir ayuda
+        if key_code == wx.WXK_F1:
+            self.on_help(event)
+            return
+
         # Ctrl+O: Abrir registro
         if control_down and key_code == ord("O"):
-
             self.on_open(event)
             return
 
         # Ctrl+F: Foco en filtro
         elif control_down and key_code == ord("F"):
-
             self.text_filter.SetFocus()
             return
             
         # Ctrl+T: Foco en árbol
         elif control_down and key_code == ord("T"):
-            
             self.tree.SetFocus()
             return
 
         # Ctrl+M: Alternar marcador
         elif control_down and key_code == ord("M"):
-            
             item = self.tree.GetSelection()
             if item.IsOk():
                 self.on_toggle_bookmark(item)
@@ -958,6 +962,34 @@ class MainFrame(wx.Frame):
             return
 
         event.Skip()
+
+    def on_help(self, event):
+        # Determinar el archivo README adecuado
+        from l10n import lancode
+        readme_path = Path(f"doc/{lancode}/README.md")
+        if not readme_path.exists():
+            readme_path = Path("README.md")
+            
+        if not readme_path.exists():
+            self.speak(_("No se pudo encontrar el archivo de ayuda"))
+            return
+
+        # Convertir Markdown a HTML
+        with readme_path.open("r", encoding="utf-8") as f:
+            md_content = f.read()
+        
+        html_content = markdown.markdown(md_content, extensions=['extra'])
+        
+        # Guardar como archivo temporal HTML
+        import tempfile
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".html", delete=False, encoding="utf-8") as tmp:
+            tmp.write(f"<html><body>{html_content}</body></html>")
+            tmp_path = tmp.name
+        
+        # Abrir en el navegador
+        webbrowser.open(f"file://{tmp_path}")
+
+
 
     # ========================================================================
     # CAMBIO DE VISTA
