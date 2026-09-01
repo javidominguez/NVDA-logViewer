@@ -1449,16 +1449,38 @@ class MainFrame(wx.Frame):
             current = self.tree.GetItemParent(current)
         return "/".join(path)
 
+    def get_entry_hash(self, entry):
+        """Genera un hash único basado en el contenido de la entrada."""
+        content = f"{entry.level}{entry.source_raw}{entry.time_text}{entry.thread}{entry.pid}{entry.message}"
+        return hashlib.md5(content.encode("utf-8")).hexdigest()
+
     def get_node_signature(self, node):
-        """Genera una firma única para un nodo, incluyendo la vista."""
+        """Genera una firma robusta para un nodo."""
         if node == self.tree.GetRootItem():
             return {"type": "root", "view": self.current_view}
             
         signature = {"view": self.current_view}
         if node in self.tree_entries:
-            signature.update({"type": "entry", "id": self.tree_entries[node].id})
+            # Entrada: usar hash de contenido
+            signature.update({
+                "type": "entry", 
+                "hash": self.get_entry_hash(self.tree_entries[node])
+            })
         else:
-            signature.update({"type": "group", "label": self.tree.GetItemText(node), "path": self.get_node_path(node)})
+            # Grupo: usar la ruta de nombres sin contadores dinámicos
+            path = []
+            current = node
+            while current.IsOk() and current != self.tree.GetRootItem():
+                text = self.tree.GetItemText(current)
+                # Limpiar contador si existe (ej: "INFO (6)" -> "INFO")
+                text = re.sub(r"\s+\(\d+\)$", "", text)
+                path.insert(0, text)
+                current = self.tree.GetItemParent(current)
+                
+            signature.update({
+                "type": "group", 
+                "path": path
+            })
         return signature
 
     def on_add_bookmark(self, node):
@@ -1534,6 +1556,7 @@ class MainFrame(wx.Frame):
         root = self.tree.GetRootItem()
         
         def find_node(node):
+            # Comparamos la firma generada dinámicamente con la guardada
             if self.get_node_signature(node) == signature:
                 return node
             
