@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-02 00:07+0200\n"
+"POT-Creation-Date: 2026-09-02 01:15+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -281,78 +281,88 @@ msgstr ""
 msgid "Marcador eliminado"
 msgstr ""
 
-#: logViewer.py:1624
+#: logViewer.py:1658
+msgid ""
+"No se puede acceder al marcador con este filtro aplicado. ¿Quieres quitar el "
+"filtro?"
+msgstr ""
+
+#: logViewer.py:1659
+msgid "Marcador no encontrado"
+msgstr ""
+
+#: logViewer.py:1671
 msgid "No se pudo encontrar el marcador en la vista actual"
 msgstr ""
 
-#: logViewer.py:1652
+#: logViewer.py:1702
 msgid "Guardar registro como"
 msgstr ""
 
-#: logViewer.py:1653
+#: logViewer.py:1703
 msgid "Archivo de texto (*.txt;*.log)|*.txt;*.log"
 msgstr ""
 
-#: logViewer.py:1723
+#: logViewer.py:1773
 msgid "No hay más entradas"
 msgstr ""
 
-#: logViewer.py:1765
+#: logViewer.py:1815
 msgid "Primera entrada"
 msgstr ""
 
-#: logViewer.py:1817
+#: logViewer.py:1867
 msgid "No se pudo encontrar el editor configurado."
 msgstr ""
 
-#: logViewer.py:1818
+#: logViewer.py:1868
 msgid "Error"
 msgstr ""
 
-#: logViewer.py:1843
+#: logViewer.py:1893
 msgid "Nivel: {}"
 msgstr ""
 
-#: logViewer.py:1844
+#: logViewer.py:1894
 msgid "Hora: {}"
 msgstr ""
 
-#: logViewer.py:1845
+#: logViewer.py:1895
 msgid "Hilo: {}"
 msgstr ""
 
-#: logViewer.py:1846
+#: logViewer.py:1896
 msgid "PID: {}"
 msgstr ""
 
-#: logViewer.py:1848
+#: logViewer.py:1898
 msgid "Origen: {}"
 msgstr ""
 
-#: logViewer.py:1849
+#: logViewer.py:1899
 msgid "Emisor: {}"
 msgstr ""
 
-#: logViewer.py:1850
+#: logViewer.py:1900
 msgid "Módulo: {}"
 msgstr ""
 
-#: logViewer.py:1851
+#: logViewer.py:1901
 msgid "Fuente: {}"
 msgstr ""
 
-#: logViewer.py:1853
+#: logViewer.py:1903
 msgid "Encabezado:"
 msgstr ""
 
-#: logViewer.py:1856
+#: logViewer.py:1906
 msgid "Mensaje:"
 msgstr ""
 
-#: logViewer.py:1857
+#: logViewer.py:1907
 msgid "(sin mensaje)"
 msgstr ""
 
-#: logViewer.py:1863
+#: logViewer.py:1913
 msgid "Traceback:"
 msgstr ""

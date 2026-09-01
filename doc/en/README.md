@@ -10,6 +10,7 @@ Prototype of an interface to visualize the NVDA log in a structured way in a tre
 The tree context menu has the options:
 - Export, which saves the content of the branch hanging from the selected node to a text file.
 - Clear filter (Ctrl+Z), which clears applied filters.
+- Add to bookmarks / Remove from bookmarks
 
 In the details view, when there is a Traceback, if you place the cursor over a line that refers to a .py file and press the space bar, that file will open in the editor selected in settings.
 If the settings have defined the path to a local folder containing the NVDA source code, the file corresponding to the .pyc file indicated in the traceback will also open in the editor.
@@ -26,3 +27,4 @@ If the editor set in settings is VS Code, the files will open on the exact line.
 * Ctrl+Z: Removes applied filters.
 * Right-click or Applications key in the tree: Opens the context menu.
 * Alt+F4 or control+Q: Closes the application.
+* control+M adds or removes the current item from the bookmarks menu.

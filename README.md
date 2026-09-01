@@ -10,6 +10,7 @@ prototipo de una interfaz para visualizar el registro de NVDA de forma estructur
 El menú contextual del árbol tiene las opciones
 - Exportar que guarda en un archivo de texto el contenido de la rama que cuelga del nodo seleccionado.
 - Quitar filtro (control+Z) que limpia los filtros aplicados 
+- Añadir a marcadores / Quitar de marcadores
 
 En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre una línea que haga referencia a un archivo .py y se pulsa la barra espaciadora se abrirá dicho archivo en el editor seleccionado en ajustes.
 Si en los ajustes se ha definido la ruta a una carpeta local con el código fuente de NVDA, también se abrirá en el editor el archivo correspondiente al .pyc indicado en el tracebak.
@@ -24,5 +25,6 @@ Si el editor definido en ajustes es vsCode los archivos se abrirán en la línea
 * Con el foco en el árbol, control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
 * control+Z quita los filtros aplicados
 * clic derecho o tecla aplicaciones en el árbol abre el menú contextual
+* control+M añade o quita el elemento actual al menú de marcadores.
 * alt+F4 o control+Q cierra la aplicación
 
