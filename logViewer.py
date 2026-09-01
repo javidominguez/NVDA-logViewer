@@ -1006,11 +1006,14 @@ class MainFrame(wx.Frame):
         self.model.entries = parse_log(text)
 
         is_reload = (self.current_file_path == path)
-        self.current_file_path = path
-
-        # Persistencia de marcadores
-        self.current_log_hash = self.get_log_hash(path)
-        self.load_bookmarks()
+        
+        # Solo cargar marcadores si el archivo ha cambiado
+        if not is_reload:
+            self.current_file_path = path
+            self.current_log_hash = self.get_log_hash(path)
+            self.load_bookmarks()
+        else:
+            self.current_file_path = path
 
         self.refresh()
 
@@ -1460,7 +1463,35 @@ class MainFrame(wx.Frame):
 
     def on_add_bookmark(self, node):
         signature = self.get_node_signature(node)
-        label = self.get_node_path(node) # Usamos la ruta completa
+        raw_label = self.get_node_path(node) # Usamos la ruta completa
+        
+        # Limpiar la etiqueta:
+        # 1. Eliminar contador de entradas tipo " (6)" al final.
+        # 2. Eliminar cualquier formato de entrada que termina con ")" o similar si es necesario.
+        # Intentemos una limpieza más agresiva al final de la etiqueta.
+        
+        # Regex: busca " (número)" al final, o patrones complejos de entrada.
+        # Si es una entrada, el label es el resultado de entry_label.
+        # Intentemos simplemente quitar lo que esté entre paréntesis al final si parece un contador.
+        
+        # Caso de grupo: "Nombre (6)" -> "Nombre"
+        label = re.sub(r"\s+\(\d+\)$", "", raw_label)
+        
+        # Caso de entrada: "17:42:04.341 — NVDA — INFO — Mensaje..."
+        # Si es una entrada, GetNodePath devuelve una ruta tipo "NVDA/INFO/17:42:04.341 — NVDA — INFO — Mensaje..."
+        # El usuario quiere limpiar la parte final.
+        
+        # Si el label sigue teniendo la estructura de una entrada, limpiamos.
+        # Basado en el ejemplo: "... — ActualizadorRecursos: comprobando actualizaciones... )"
+        # Parece que hay una parte final que sobra.
+        
+        if " — " in label:
+            # Es probable que sea una entrada, tomamos la parte descriptiva.
+            parts = label.split(" — ")
+            # Ejemplo: ["17:42:04.341", "NVDA", "INFO", "Mensaje...)"]
+            # Tomamos el mensaje y quitamos el ")" final si existe
+            if len(parts) >= 4:
+                label = parts[-1].rstrip(" )")
         
         # Evitar duplicados
         if any(b['signature'] == signature for b in self.bookmarks):
