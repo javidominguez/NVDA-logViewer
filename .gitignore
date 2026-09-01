@@ -2,3 +2,5 @@ __pycache__
 /__pycache__/*.pyc
 *.pyc
 /settings.json
+/bookmarks
+/locale/en/LC_MESSAGES/*.po~
