@@ -819,6 +819,14 @@ class MainFrame(wx.Frame):
             self.tree.SetFocus()
             return
 
+        # Ctrl+M: Alternar marcador
+        elif control_down and key_code == ord("M"):
+            
+            item = self.tree.GetSelection()
+            if item.IsOk():
+                self.on_toggle_bookmark(item)
+            return
+
         # Ctrl+1..6: Alternar checkboxes de filtro
         elif control_down and ord("1") <= key_code <= ord("6") and self.tree.HasFocus():
             
@@ -1349,8 +1357,15 @@ class MainFrame(wx.Frame):
 
         menu = wx.Menu()
 
-        bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
-        self.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
+        signature = self.get_node_signature(item)
+        is_bookmarked = any(b['signature'] == signature for b in self.bookmarks)
+        
+        if is_bookmarked:
+            bookmark_item = menu.Append(wx.ID_ANY, _("Quitar de marcadores"))
+            self.Bind(wx.EVT_MENU, lambda e: self.on_remove_bookmark(signature), bookmark_item)
+        else:
+            bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
+            self.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
 
         if self.current_view in ("source", "level", "time"):
 
@@ -1399,6 +1414,20 @@ class MainFrame(wx.Frame):
         
         self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
         self.speak(_("Marcador añadido"))
+
+    def on_remove_bookmark(self, signature):
+        bookmark = next((b for b in self.bookmarks if b['signature'] == signature), None)
+        if bookmark:
+            self.bookmarks_menu.Remove(bookmark['menu_id'])
+            self.bookmarks.remove(bookmark)
+            self.speak(_("Marcador eliminado"))
+
+    def on_toggle_bookmark(self, node):
+        signature = self.get_node_signature(node)
+        if any(b['signature'] == signature for b in self.bookmarks):
+            self.on_remove_bookmark(signature)
+        else:
+            self.on_add_bookmark(node)
 
     def on_bookmark_selected(self, signature):
         # 1. Cambiar la vista
