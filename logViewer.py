@@ -1414,8 +1414,85 @@ class MainFrame(wx.Frame):
         return None
 
     def on_detail_key(self, event):
+        key = event.GetKeyCode()
 
-        if event.GetKeyCode() == wx.WXK_SPACE:
+        # Navegación entre entradas: AvPág (PageDown) y RePág (PageUp)
+        if key in (wx.WXK_PAGEDOWN, wx.WXK_PAGEUP):
+            content = self.detail.GetValue()
+            pos = self.detail.GetInsertionPoint()
+            
+            separator = "-" * 40
+            
+            # Buscar todas las posiciones de los separadores
+            separators = [m.start() for m in re.finditer(re.escape(separator), content)]
+            
+            if not separators:
+                event.Skip()
+                return
+
+            if key == wx.WXK_PAGEDOWN:
+                # Siguiente entrada
+                # Posición después del separador actual (si estamos sobre uno)
+                # O buscar el siguiente separador.
+                
+                # Encontramos el primer separador que esté después de la posición actual del cursor.
+                for s_pos in separators:
+                    if s_pos > pos:
+                        # Saltar el separador (40 chars) + salto de línea (1 char)
+                        target = s_pos + len(separator) + 1
+                        self.detail.SetInsertionPoint(target)
+                        self.detail.ShowPosition(target)
+                        return
+                
+                # Si estamos después del último separador, o no hay más, avisar
+                self.speak(_("No hay más entradas"))
+            else:
+                # Anterior entrada
+                
+                # Buscamos el separador inmediatamente anterior a la posición actual.
+                # Si estamos dentro de una entrada (después de un separador), vamos al inicio de esa entrada.
+                # Si estamos al inicio de una entrada (justo después de un separador), vamos al inicio de la anterior.
+                
+                # Posición del separador que precede o define el inicio de la entrada actual
+                found_s_pos = -1
+                
+                # Encontrar el separador previo más cercano a pos
+                for s_pos in reversed(separators):
+                    if s_pos < pos:
+                        found_s_pos = s_pos
+                        break
+                
+                # Si encontramos un separador antes, vamos al inicio de esa entrada
+                # Si no, vamos al inicio del documento
+                if found_s_pos != -1:
+                    # Si el cursor está justo al inicio de la entrada (inmediatamente después del separador)
+                    # buscamos el separador anterior para retroceder más.
+                    if pos == found_s_pos + len(separator) + 1:
+                        # Buscar el separador anterior a found_s_pos
+                        prev_s_pos = -1
+                        for s_pos in reversed(separators):
+                            if s_pos < found_s_pos:
+                                prev_s_pos = s_pos
+                                break
+                        
+                        if prev_s_pos != -1:
+                            target = prev_s_pos + len(separator) + 1
+                        else:
+                            target = 0
+                    else:
+                        target = found_s_pos + len(separator) + 1
+                else:
+                    target = 0
+                
+                self.detail.SetInsertionPoint(target)
+                self.detail.ShowPosition(target)
+                if target == 0:
+                    self.speak(_("Primera entrada"))
+            
+            event.Skip()
+            return
+
+        if key == wx.WXK_SPACE:
 
             # Obtener línea actual
             pos = self.detail.GetInsertionPoint()
@@ -1480,43 +1557,51 @@ class MainFrame(wx.Frame):
         if not item.IsOk():
             return
 
-        entry = self.tree_entries.get(item)
-
-        if entry is None:
+        entries = self.get_all_entries_under_node(item)
+        if not entries:
+            self.detail.Clear()
             return
 
-        lines = [
-            _("Nivel: {}").format(entry.level),
-            _("Hora: {}").format(entry.time_text),
-            _("Hilo: {}").format(entry.thread),
-            _("PID: {}").format(entry.pid),
-            "",
-            _("Origen: {}").format(entry.source_type),
-            _("Emisor: {}").format(entry.display_emitter),
-            _("Módulo: {}").format(entry.module),
-            _("Fuente: {}").format(entry.source_raw),
-            "",
-            _("Encabezado:"),
-            entry.header_text,
-            "",
-            _("Mensaje:"),
-            entry.message or _("(sin mensaje)"),
-        ]
-
-        if entry.traceback:
-
-            lines.extend([
+        if len(entries) == 1:
+            entry = entries[0]
+            lines = [
+                _("Nivel: {}").format(entry.level),
+                _("Hora: {}").format(entry.time_text),
+                _("Hilo: {}").format(entry.thread),
+                _("PID: {}").format(entry.pid),
                 "",
-                _("Traceback:"),
-            ])
+                _("Origen: {}").format(entry.source_type),
+                _("Emisor: {}").format(entry.display_emitter),
+                _("Módulo: {}").format(entry.module),
+                _("Fuente: {}").format(entry.source_raw),
+                "",
+                _("Encabezado:"),
+                entry.header_text,
+                "",
+                _("Mensaje:"),
+                entry.message or _("(sin mensaje)"),
+            ]
 
-            lines.extend(
-                entry.traceback
-            )
+            if entry.traceback:
+                lines.extend([
+                    "",
+                    _("Traceback:"),
+                ])
+                lines.extend(entry.traceback)
 
-        self.detail.SetValue(
-            "\n".join(lines)
-        )
+            self.detail.SetValue("\n".join(lines))
+
+        else:
+            # Detalles completos de múltiples entradas
+            lines = []
+            for entry in sorted(entries, key=lambda e: e.sort_time):
+                lines.append(entry.header_text)
+                if entry.message:
+                    lines.append(entry.message)
+                if entry.traceback:
+                    lines.extend(entry.traceback)
+                lines.append("-" * 40) # Separador visual
+            self.detail.SetValue("\n".join(lines))
 
 
 # ============================================================================
