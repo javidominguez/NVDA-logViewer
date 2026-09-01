@@ -485,16 +485,13 @@ class MainFrame(wx.Frame):
         # Reconstruir el menú
         for entry in data:
             signature = entry['signature']
-            # Necesitamos reconstruir la etiqueta para el menú. 
-            # Si el marcador es de tipo group, signature['path'] tiene la etiqueta.
-            # Si es de tipo entry, es más complejo, usaremos el path si existe o una etiqueta genérica.
-            label = signature.get('path') or f"Entry {signature.get('id')}"
+            label = entry.get('label', _("Marcador sin nombre"))
             
             bookmark_id = wx.NewIdRef()
             bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
             self.Bind(wx.EVT_MENU, lambda e, sig=signature: self.on_bookmark_selected(sig), bookmark_item)
             
-            self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
+            self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id, 'label': label})
 
     def save_bookmarks(self):
         """Guarda los marcadores actuales en un archivo."""
@@ -502,7 +499,8 @@ class MainFrame(wx.Frame):
             return
             
         bookmark_file = self.bookmarks_folder / self.current_log_hash
-        data = [{'signature': b['signature']} for b in self.bookmarks]
+        # IMPORTANTE: Asegurar que se guarda la etiqueta
+        data = [{'signature': b['signature'], 'label': b['label']} for b in self.bookmarks]
         
         with bookmark_file.open("w", encoding="utf-8") as f:
             json.dump(data, f, indent=4)
@@ -1473,7 +1471,7 @@ class MainFrame(wx.Frame):
         bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
         self.Bind(wx.EVT_MENU, lambda e: self.on_bookmark_selected(signature), bookmark_item)
         
-        self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id})
+        self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id, 'label': label})
         self.save_bookmarks()
         self.speak(_("Marcador añadido"))
 
