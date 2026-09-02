@@ -284,7 +284,7 @@ class LogModel:
 
         self.entries = []
 
-    def filtered(self, text_filter, levels):
+    def filtered(self, text_filter, levels, hidden_entries=None):
         """
         Filtra las entradas.
 
@@ -297,10 +297,19 @@ class LogModel:
         """
 
         text_filter = text_filter.strip().casefold()
+        if hidden_entries is None:
+            hidden_entries = set()
 
         result = []
 
         for entry in self.entries:
+
+            # ------------------------------------------------------------
+            # Filtro de ocultación
+            # ------------------------------------------------------------
+
+            if entry.id in hidden_entries:
+                continue
 
             # ------------------------------------------------------------
             # Filtro por nivel
@@ -455,6 +464,7 @@ class MainFrame(wx.Frame):
 
         # Flag para saber si los filtros han cambiado
         self.filters_dirty = False
+        self.hidden_entries = set()
 
         # Vista actual:
         #
@@ -867,6 +877,7 @@ class MainFrame(wx.Frame):
     def on_clear_filters(self, event):
 
         self.text_filter.Clear()
+        self.hidden_entries.clear()
 
         for checkbox in self.level_checks.values():
 
@@ -1139,6 +1150,7 @@ class MainFrame(wx.Frame):
             entries = self.model.filtered(
                 current_text,
                 current_levels,
+                self.hidden_entries,
             )
 
             if not entries:
@@ -1157,7 +1169,7 @@ class MainFrame(wx.Frame):
                     checkbox.SetValue(level in self.last_selected_levels)
                 
                 # Recalcular entradas con el último filtro válido
-                entries = self.model.filtered(self.last_text_filter, self.last_selected_levels)
+                entries = self.model.filtered(self.last_text_filter, self.last_selected_levels, self.hidden_entries)
             else:
                 # Filtro válido, actualizar estado
                 self.last_text_filter = current_text
@@ -1550,9 +1562,19 @@ class MainFrame(wx.Frame):
         clear_filters_item = menu.Append(wx.ID_ANY, _("Quitar filtros"))
         self.Bind(wx.EVT_MENU, self.on_clear_filters, clear_filters_item)
 
+        hide_item = menu.Append(wx.ID_ANY, _("Ocultar"))
+        self.Bind(wx.EVT_MENU, lambda e: self.on_hide_node(item), hide_item)
+
         self.PopupMenu(menu)
         menu.Destroy()
     
+    def on_hide_node(self, node):
+        entries = self.get_all_entries_under_node(node)
+        for entry in entries:
+            self.hidden_entries.add(entry.id)
+        self.refresh()
+        self.speak(_("Entradas ocultadas"))
+
     def get_node_path(self, node):
         """Obtiene la ruta jerárquica de un nodo."""
         path = []
