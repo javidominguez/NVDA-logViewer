@@ -1221,7 +1221,98 @@ class MainFrame(wx.Frame):
     # VISTA POR NIVEL
     # ========================================================================
 
+    def get_expanded_signatures(self, root):
+        expanded = set()
+        child, cookie = self.tree.GetFirstChild(root)
+        while child.IsOk():
+            if self.tree.IsExpanded(child):
+                expanded.add(self.get_node_signature(child))
+                expanded.update(self.get_expanded_signatures(child))
+            child, cookie = self.tree.GetNextChild(root, cookie)
+        return expanded
+
+    def restore_expanded_state(self, root, expanded_signatures):
+        child, cookie = self.tree.GetFirstChild(root)
+        while child.IsOk():
+            sig = self.get_node_signature(child)
+            if sig in expanded_signatures:
+                self.tree.Expand(child)
+                self.restore_expanded_state(child, expanded_signatures)
+            child, cookie = self.tree.GetNextChild(root, cookie)
+
+    def restore_closest_focus(self, previous_entry, entries):
+        if not previous_entry or not entries:
+            return False
+            
+        try:
+            old_index = self.model.entries.index(previous_entry)
+        except ValueError:
+            return False
+            
+        best_entry = None
+        min_dist = float('inf')
+        
+        for entry in entries:
+            try:
+                current_index = self.model.entries.index(entry)
+                dist = abs(current_index - old_index)
+                if dist < min_dist:
+                    min_dist = dist
+                    best_entry = entry
+            except ValueError:
+                continue
+        
+        if best_entry:
+            for node, entry in self.tree_entries.items():
+                if entry == best_entry:
+                    self.tree.SelectItem(node)
+                    self.tree.EnsureVisible(node)
+                    self.tree.SetFocus()
+                    return True
+        return False
+
+    def restore_focus_by_signature(self, target_signature):
+        if target_signature is None:
+            return False
+
+        root = self.tree.GetRootItem()
+        if not root.IsOk():
+            return False
+
+        def find_node(node):
+            node_sig = self.get_node_signature(node)
+            if node_sig == target_signature:
+                return node
+            
+            child, cookie = self.tree.GetFirstChild(node)
+            while child.IsOk():
+                found = find_node(child)
+                if found:
+                    return found
+                child, cookie = self.tree.GetNextChild(node, cookie)
+            return None
+        
+        target = find_node(root)
+        if target:
+            self.tree.SelectItem(target)
+            self.tree.EnsureVisible(target)
+            self.tree.SetFocus()
+            return True
+        else:
+            # Re-enabling debug temporarily to see why lookup fails
+            print(f"Debug [restore_focus_by_signature]: Target signature NOT found: {target_signature}")
+            return False
+            print(f"Debug: Failed to find target signature: {target_signature}")
+            return False
+
     def populate_level_tree(self, entries):
+        # Guardar estado previo
+        selection = self.tree.GetSelection()
+        target_sig = self.get_node_signature(selection) if selection and selection.IsOk() else None
+        previous_entry = self.tree_entries.get(selection) if selection and selection.IsOk() else None
+        root = self.tree.GetRootItem()
+        expanded_sigs = self.get_expanded_signatures(root) if root and root.IsOk() else set()
+
         self.tree.DeleteAllItems()
         self.detail.Clear()
 
@@ -1236,24 +1327,23 @@ class MainFrame(wx.Frame):
         for level in LogModel.LEVELS:
             if level not in groups:
                 continue
-            
+
             level_node = self.tree.AppendItem(root, level)
-            
+
             modules = groups[level]
             for module in sorted(modules.keys()):
                 module_entries = modules[module]
-                
+
                 module_node = self.tree.AppendItem(level_node, f"{module} ({len(module_entries)})")
-                
+
                 for entry in module_entries:
                     node = self.tree.AppendItem(module_node, self.entry_label(entry))
                     self.tree_entries[node] = entry
-        
-        # Enfocar el primer elemento si existe.
-        child, cookie = self.tree.GetFirstChild(root)
-        if child.IsOk():
-            self.tree.SelectItem(child)
-            self.tree.SetFocus()
+
+        # Restaurar estado
+        self.restore_expanded_state(root, expanded_sigs)
+        if not self.restore_focus_by_signature(target_sig):
+            self.restore_closest_focus(previous_entry, entries)
 
 
     # ========================================================================
@@ -1261,14 +1351,16 @@ class MainFrame(wx.Frame):
     # ========================================================================
 
     def populate_source_tree(self, entries):
+        # Guardar estado previo
+        selection = self.tree.GetSelection()
+        target_sig = self.get_node_signature(selection) if selection and selection.IsOk() else None
+        root = self.tree.GetRootItem()
+        expanded_sigs = self.get_expanded_signatures(root) if root and root.IsOk() else set()
 
         self.tree.DeleteAllItems()
-
         self.detail.Clear()
 
-        root = self.tree.AddRoot(
-            _("Registro de NVDA")
-        )
+        root = self.tree.AddRoot(_("Registro de NVDA"))
 
         global_commands_node = None
         nvda_node = None
@@ -1310,171 +1402,71 @@ class MainFrame(wx.Frame):
 
             if entry.source_type == "NVDA":
 
-                key = (
-                    "NVDA",
-                    entry.module,
-                )
-
+                key = ("NVDA", entry.module)
             else:
+                key = (entry.source_type, entry.addon)
 
-                key = (
-                    entry.source_type,
-                    entry.addon,
-                )
-
-            groups.setdefault(
-                key,
-                [],
-            ).append(entry)
+            groups.setdefault(key, []).append(entry)
 
         # ----------------------------------------------------------------
         # Crear grupos de categorías
         # ----------------------------------------------------------------
 
         def sort_key(item):
-            # Orden:
-            # 1: NVDA
-            # 2: Global Plugins
-            # 3: App Modules
+            type_order = {"NVDA": 1, "Global Plugin": 2, "App Module": 3}
+            return (type_order.get(item[0], 99), item[1].lower())
 
-            type_order = {
-                "NVDA": 1,
-                "Global Plugin": 2,
-                "App Module": 3,
-            }
+        for source_type, source_name in sorted(groups.keys(), key=sort_key):
+            group_entries = groups[(source_type, source_name)]
 
-            return (
-                type_order.get(item[0], 99),
-                item[1].lower(),
-            )
-
-        for (
-            source_type,
-            source_name,
-        ) in sorted(
-            groups.keys(),
-            key=sort_key,
-        ):
-
-            group_entries = groups[
-                (source_type, source_name)
-            ]
-
-            # --------------------------------------------------------
-            # GLOBAL COMMANDS
-            # --------------------------------------------------------
-
+            # Categorías
             if source_type == "Global Commands":
-
                 if global_commands_node is None:
-
-                    global_commands_node = self.tree.AppendItem(
-                        root,
-                        _("Global Commands"),
-                    )
-
+                    global_commands_node = self.tree.AppendItem(root, _("Global Commands"))
                 emitter_node = global_commands_node
-
-            # --------------------------------------------------------
-            # NVDA
-            # --------------------------------------------------------
-
             elif source_type == "NVDA":
-
                 if nvda_node is None:
-
-                    nvda_node = self.tree.AppendItem(
-                        root,
-                        "NVDA",
-                    )
-
-                emitter_node = self.tree.AppendItem(
-                    nvda_node,
-                    source_name,
-                )
-
-            # --------------------------------------------------------
-            # GLOBAL PLUGINS
-            # --------------------------------------------------------
-
+                    nvda_node = self.tree.AppendItem(root, "NVDA")
+                emitter_node = self.tree.AppendItem(nvda_node, source_name)
             elif source_type == "Global Plugin":
-
                 if global_plugins_node is None:
-
-                    global_plugins_node = self.tree.AppendItem(
-                        root,
-                        _("Global Plugins"),
-                    )
-
-                emitter_node = self.tree.AppendItem(
-                    global_plugins_node,
-                    source_name,
-                )
-
-            # --------------------------------------------------------
-            # APP MODULES
-            # --------------------------------------------------------
-
+                    global_plugins_node = self.tree.AppendItem(root, _("Global Plugins"))
+                emitter_node = self.tree.AppendItem(global_plugins_node, source_name)
             else:
-
                 if app_modules_node is None:
+                    app_modules_node = self.tree.AppendItem(root, _("App Modules"))
+                emitter_node = self.tree.AppendItem(app_modules_node, source_name)
 
-                    app_modules_node = self.tree.AppendItem(
-                        root,
-                        _("App Modules"),
-                    )
-
-                emitter_node = self.tree.AppendItem(
-                    app_modules_node,
-                    source_name,
-                )
-
-            # --------------------------------------------------------
             # NIVELES
-            # --------------------------------------------------------
-
             for level in LogModel.LEVELS:
-
-                level_entries = [
-                    entry
-                    for entry in group_entries
-                    if entry.level == level
-                ]
-
+                level_entries = [e for e in group_entries if e.level == level]
                 if not level_entries:
                     continue
 
                 if source_type == "Global Commands":
-
                     level_node = emitter_node
-
                 else:
-
-                    level_node = self.tree.AppendItem(
-                        emitter_node,
-                        _("{} ({})").format(level, len(level_entries)),
-                    )
+                    level_node = self.tree.AppendItem(emitter_node, _("{} ({})").format(level, len(level_entries)))
 
                 for entry in level_entries:
-
-                    node = self.tree.AppendItem(
-                        level_node,
-                        self.entry_label(entry),
-                    )
-
+                    node = self.tree.AppendItem(level_node, self.entry_label(entry))
                     self.tree_entries[node] = entry
 
-        # Enfocar el primer elemento si existe.
-        child, cookie = self.tree.GetFirstChild(root)
-        if child.IsOk():
-            self.tree.SelectItem(child)
-            self.tree.SetFocus()
+        # Restaurar estado
+        self.restore_expanded_state(root, expanded_sigs)
+        self.restore_focus_by_signature(target_sig)
+
 
     # ========================================================================
     # VISTA CRONOLÓGICA
     # ========================================================================
 
     def populate_time_tree(self, entries):
+        # Guardar estado previo
+        selection = self.tree.GetSelection()
+        target_sig = self.get_node_signature(selection) if selection and selection.IsOk() else None
+        root = self.tree.GetRootItem()
+        expanded_sigs = self.get_expanded_signatures(root) if root and root.IsOk() else set()
 
         self.tree.DeleteAllItems()
         self.detail.Clear()
@@ -1488,29 +1480,29 @@ class MainFrame(wx.Frame):
             parts = entry.time_text.split(':')
             hour = parts[0]
             minute = parts[1]
-            
+
             groups.setdefault(hour, {}).setdefault(minute, []).append(entry)
 
         # Construir el árbol
         for hour in sorted(groups.keys()):
             hour_node = self.tree.AppendItem(root, f"{hour}:00")
-            
+
             minutes = groups[hour]
             for minute in sorted(minutes.keys()):
                 minute_entries = minutes[minute]
                 minute_node = self.tree.AppendItem(hour_node, _("{}:{} ({})").format(hour, minute, len(minute_entries)))
-                
+
                 for entry in minute_entries:
                     node = self.tree.AppendItem(minute_node, self.entry_label(entry))
                     self.tree_entries[node] = entry
-            
+
             self.tree.Expand(hour_node)
 
-        # Enfocar el primer elemento si existe.
-        child, cookie = self.tree.GetFirstChild(root)
-        if child.IsOk():
-            self.tree.SelectItem(child)
-            self.tree.SetFocus()
+        # Restaurar estado
+        self.restore_expanded_state(root, expanded_sigs)
+        self.restore_focus_by_signature(target_sig)
+
+
     # ========================================================================
     # TEXTO DE LAS ENTRADAS
     # ========================================================================
@@ -1602,17 +1594,14 @@ class MainFrame(wx.Frame):
         return hashlib.md5(content.encode("utf-8")).hexdigest()
 
     def get_node_signature(self, node):
-        """Genera una firma robusta para un nodo."""
+        """Genera una firma robusta para un nodo (retorna una tupla)."""
         if node == self.tree.GetRootItem():
-            return {"type": "root", "view": self.current_view}
+            return ("root", self.current_view)
             
-        signature = {"view": self.current_view}
+        view = self.current_view
         if node in self.tree_entries:
             # Entrada: usar hash de contenido
-            signature.update({
-                "type": "entry", 
-                "hash": self.get_entry_hash(self.tree_entries[node])
-            })
+            sig = ("entry", view, self.get_entry_hash(self.tree_entries[node]))
         else:
             # Grupo: usar la ruta de nombres sin contadores dinámicos
             path = []
@@ -1620,15 +1609,19 @@ class MainFrame(wx.Frame):
             while current.IsOk() and current != self.tree.GetRootItem():
                 text = self.tree.GetItemText(current)
                 # Limpiar contador si existe (ej: "INFO (6)" -> "INFO")
+                # También limpiar texto localizado opcionalmente o prefijos comunes
                 text = re.sub(r"\s+\(\d+\)$", "", text)
+                # Ejemplo de limpieza adicional para evitar fallos de coincidencia:
+                # Si el texto es "INFO (6)", el sub anterior deja "INFO".
+                # A veces el texto tiene espacios adicionales
+                text = text.strip()
                 path.insert(0, text)
                 current = self.tree.GetItemParent(current)
                 
-            signature.update({
-                "type": "group", 
-                "path": path
-            })
-        return signature
+            sig = ("group", view, tuple(path))
+        
+        # print(f"Debug [get_node_signature]: Node '{self.tree.GetItemText(node)}', Sig: {sig}")
+        return sig
 
     def on_add_bookmark(self, node):
         signature = self.get_node_signature(node)
