@@ -466,6 +466,9 @@ class MainFrame(wx.Frame):
         self.build_ui()
         self.bind_events()
 
+        self.last_text_filter = ""
+        self.last_selected_levels = set(self.level_checks.keys())
+
         self.Centre()
 
         # ----------------------------------------------------------------
@@ -1125,51 +1128,82 @@ class MainFrame(wx.Frame):
     # ========================================================================
 
     def refresh(self):
+        if getattr(self, "is_refreshing", False):
+            return
+        
+        self.is_refreshing = True
+        try:
+            current_text = self.text_filter.GetValue()
+            current_levels = self.selected_levels()
 
-        entries = self.model.filtered(
-            self.text_filter.GetValue(),
-            self.selected_levels(),
-        )
-
-        self.tree_entries.clear()
-
-        if self.current_view == "source":
-
-            self.populate_source_tree(
-                entries
+            entries = self.model.filtered(
+                current_text,
+                current_levels,
             )
 
-        elif self.current_view == "level":
-            
-            self.populate_level_tree(
-                entries
+            if not entries:
+                # Desactivar temporalmente los eventos para evitar recursión
+                # Usar MessageDialog para personalizar botones si wx.MessageBox no permite cambiar el texto
+                dlg = wx.MessageDialog(self, _("No hay entradas que coincidan con el filtro"), _("Atención"), wx.OK | wx.ICON_WARNING)
+                dlg.SetOKCancelLabels(_("Aceptar"), "") # Intentar personalizar el botón
+                dlg.ShowModal()
+                dlg.Destroy()
+                
+                # Restaurar los valores del filtro sin invocar refresh() directamente
+                # Usar CallAfter para asegurar que la interfaz esté lista
+                wx.CallAfter(self.text_filter.SetValue, self.last_text_filter)
+                
+                for level, checkbox in self.level_checks.items():
+                    checkbox.SetValue(level in self.last_selected_levels)
+                
+                # Recalcular entradas con el último filtro válido
+                entries = self.model.filtered(self.last_text_filter, self.last_selected_levels)
+            else:
+                # Filtro válido, actualizar estado
+                self.last_text_filter = current_text
+                self.last_selected_levels = current_levels
+
+            self.tree_entries.clear()
+
+            if self.current_view == "source":
+
+                self.populate_source_tree(
+                    entries
+                )
+
+            elif self.current_view == "level":
+                
+                self.populate_level_tree(
+                    entries
+                )
+
+            else:
+
+                self.populate_time_tree(
+                    entries
+                )
+
+            # ----------------------------------------------------------------
+            # ESTADO
+            # ----------------------------------------------------------------
+
+            file_name = (
+                self.current_file_path.name
+                if self.current_file_path and self.current_file_path.exists()
+                else "Sin archivo"
             )
 
-        else:
+            status_text = _("{} | {} entradas").format(file_name, len(entries))
 
-            self.populate_time_tree(
-                entries
-            )
+            if entries:
 
-        # ----------------------------------------------------------------
-        # ESTADO
-        # ----------------------------------------------------------------
+                last_entry = entries[-1]
 
-        file_name = (
-            self.current_file_path.name
-            if self.current_file_path and self.current_file_path.exists()
-            else "Sin archivo"
-        )
+                status_text += _(" | Última entrada: {}").format(last_entry.time_text)
 
-        status_text = _("{} | {} entradas").format(file_name, len(entries))
-
-        if entries:
-
-            last_entry = entries[-1]
-
-            status_text += _(" | Última entrada: {}").format(last_entry.time_text)
-
-        self.status.SetLabel(status_text)
+            self.status.SetLabel(status_text)
+        finally:
+            self.is_refreshing = False
 
     # ========================================================================
     # VISTA POR NIVEL
