@@ -1569,11 +1569,23 @@ class MainFrame(wx.Frame):
         menu.Destroy()
     
     def on_hide_node(self, node):
+        # Guardar estado actual para poder deshacer
+        old_hidden_entries = self.hidden_entries.copy()
+        
         entries = self.get_all_entries_under_node(node)
         for entry in entries:
             self.hidden_entries.add(entry.id)
+            
         self.refresh()
-        self.speak(_("Entradas ocultadas"))
+        
+        # Si después de refrescar el árbol queda vacío, deshacer
+        if not self.tree.GetRootItem().IsOk() or not self.tree.GetFirstChild(self.tree.GetRootItem())[0].IsOk():
+            self.hidden_entries = old_hidden_entries
+            # Ya que refresh() muestra el diálogo si entries está vacío, solo necesitamos restaurar el estado
+            # y volver a llamar a refresh para que el diálogo cierre y el estado sea consistente.
+            self.refresh()
+        else:
+            self.speak(_("Entradas ocultadas"))
 
     def get_node_path(self, node):
         """Obtiene la ruta jerárquica de un nodo."""
