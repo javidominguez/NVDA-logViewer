@@ -284,7 +284,7 @@ class LogModel:
 
         self.entries = []
 
-    def filtered(self, text_filter, levels, hidden_entries=None, bookmarked_entry_ids=None):
+    def filtered(self, text_filter, levels, hidden_entries=None):
         """
         Filtra las entradas.
 
@@ -316,13 +316,6 @@ class LogModel:
             # ------------------------------------------------------------
 
             if entry.level not in levels:
-                continue
-
-            # ------------------------------------------------------------
-            # Filtro por marcadores
-            # ------------------------------------------------------------
-
-            if bookmarked_entry_ids is not None and entry.id not in bookmarked_entry_ids:
                 continue
 
             # ------------------------------------------------------------
@@ -514,13 +507,6 @@ class MainFrame(wx.Frame):
             content = f.read(512)
         return hashlib.md5(content).hexdigest()
 
-    def update_bookmarks_ui(self):
-        """Actualiza el estado habilitado del checkbox de marcadores."""
-        has_bookmarks = len(self.bookmarks) > 0
-        self.only_bookmarks_check.Enable(has_bookmarks)
-        if not has_bookmarks:
-            self.only_bookmarks_check.SetValue(False)
-
     def load_bookmarks(self):
         """Carga marcadores para el log actual."""
         # Limpiar menú de marcadores
@@ -531,12 +517,10 @@ class MainFrame(wx.Frame):
         self.bookmarks = []
         
         if not self.current_log_hash:
-            self.update_bookmarks_ui()
             return
             
         bookmark_file = self.bookmarks_folder / self.current_log_hash
         if not bookmark_file.exists():
-            self.update_bookmarks_ui()
             return
             
         with bookmark_file.open("r", encoding="utf-8") as f:
@@ -553,8 +537,6 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, lambda e, sig=signature: self.on_bookmark_selected(sig), bookmark_item)
             
             self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id, 'label': label})
-        
-        self.update_bookmarks_ui()
 
     def save_bookmarks(self):
         """Guarda los marcadores actuales en un archivo."""
@@ -736,17 +718,12 @@ class MainFrame(wx.Frame):
 
         filter_box.Add(type_box, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
         
-        # Filtro de marcadores
-        self.only_bookmarks_check = wx.CheckBox(panel, label=_("Sólo marcadores"))
-        filter_box.Add(self.only_bookmarks_check, 0, wx.ALIGN_CENTER_VERTICAL, 0)
-        
         # Ajustar orden de tabulación para que coincida con el orden visual
         # El primero es text_filter. No necesita MoveAfterInTabOrder.
         prev_win = self.text_filter
         for checkbox in self.level_checks.values():
             checkbox.MoveAfterInTabOrder(prev_win)
             prev_win = checkbox
-        self.only_bookmarks_check.MoveAfterInTabOrder(prev_win)
 
         main_sizer.Add(filter_box, 0, wx.EXPAND | wx.ALL, 8)
 
@@ -871,12 +848,6 @@ class MainFrame(wx.Frame):
                 lambda event: (self.mark_dirty(), event.Skip()),
             )
 
-        # Filtro de marcadores
-        self.only_bookmarks_check.Bind(
-            wx.EVT_CHECKBOX,
-            lambda event: (self.mark_dirty(), self.refresh(), event.Skip()),
-        )
-
         # ------------------------------------------------------------
         # Detalle
         # ------------------------------------------------------------
@@ -921,14 +892,12 @@ class MainFrame(wx.Frame):
 
         self.text_filter.Clear()
         self.hidden_entries.clear()
-        self.only_bookmarks_check.SetValue(False)
 
         for checkbox in self.level_checks.values():
 
             checkbox.SetValue(True)
 
         self.refresh()
-        self.update_bookmarks_ui()
         self.filters_dirty = False
         self.speak(_("Filtros eliminados"))
 
@@ -1257,14 +1226,10 @@ class MainFrame(wx.Frame):
             current_text = self.text_filter.GetValue()
             current_levels = self.selected_levels()
             
-            # Nuevo filtro
-            bookmarked_ids = self.get_bookmarked_entry_ids() if self.only_bookmarks_check.GetValue() else None
-
             entries = self.model.filtered(
                 current_text,
                 current_levels,
                 self.hidden_entries,
-                bookmarked_entry_ids=bookmarked_ids,
             )
 
 
