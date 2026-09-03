@@ -284,7 +284,7 @@ class LogModel:
 
         self.entries = []
 
-    def filtered(self, text_filter, levels, hidden_entries=None):
+    def filtered(self, text_filter, levels, hidden_entries=None, bookmarked_entry_ids=None):
         """
         Filtra las entradas.
 
@@ -316,6 +316,13 @@ class LogModel:
             # ------------------------------------------------------------
 
             if entry.level not in levels:
+                continue
+
+            # ------------------------------------------------------------
+            # Filtro por marcadores
+            # ------------------------------------------------------------
+
+            if bookmarked_entry_ids is not None and entry.id not in bookmarked_entry_ids:
                 continue
 
             # ------------------------------------------------------------
@@ -507,6 +514,13 @@ class MainFrame(wx.Frame):
             content = f.read(512)
         return hashlib.md5(content).hexdigest()
 
+    def update_bookmarks_ui(self):
+        """Actualiza el estado habilitado del checkbox de marcadores."""
+        has_bookmarks = len(self.bookmarks) > 0
+        self.only_bookmarks_check.Enable(has_bookmarks)
+        if not has_bookmarks:
+            self.only_bookmarks_check.SetValue(False)
+
     def load_bookmarks(self):
         """Carga marcadores para el log actual."""
         # Limpiar menú de marcadores
@@ -517,10 +531,12 @@ class MainFrame(wx.Frame):
         self.bookmarks = []
         
         if not self.current_log_hash:
+            self.update_bookmarks_ui()
             return
             
         bookmark_file = self.bookmarks_folder / self.current_log_hash
         if not bookmark_file.exists():
+            self.update_bookmarks_ui()
             return
             
         with bookmark_file.open("r", encoding="utf-8") as f:
@@ -537,6 +553,8 @@ class MainFrame(wx.Frame):
             self.Bind(wx.EVT_MENU, lambda e, sig=signature: self.on_bookmark_selected(sig), bookmark_item)
             
             self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id, 'label': label})
+        
+        self.update_bookmarks_ui()
 
     def save_bookmarks(self):
         """Guarda los marcadores actuales en un archivo."""
@@ -710,6 +728,18 @@ class MainFrame(wx.Frame):
             type_box.Add(checkbox, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 12)
 
         filter_box.Add(type_box, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
+        
+        # Filtro de marcadores
+        self.only_bookmarks_check = wx.CheckBox(panel, label=_("Sólo marcadores"))
+        filter_box.Add(self.only_bookmarks_check, 0, wx.ALIGN_CENTER_VERTICAL, 0)
+        
+        # Ajustar orden de tabulación para que coincida con el orden visual
+        # El primero es text_filter. No necesita MoveAfterInTabOrder.
+        prev_win = self.text_filter
+        for checkbox in self.level_checks.values():
+            checkbox.MoveAfterInTabOrder(prev_win)
+            prev_win = checkbox
+        self.only_bookmarks_check.MoveAfterInTabOrder(prev_win)
 
         main_sizer.Add(filter_box, 0, wx.EXPAND | wx.ALL, 8)
 
@@ -834,6 +864,12 @@ class MainFrame(wx.Frame):
                 lambda event: (self.mark_dirty(), event.Skip()),
             )
 
+        # Filtro de marcadores
+        self.only_bookmarks_check.Bind(
+            wx.EVT_CHECKBOX,
+            lambda event: (self.mark_dirty(), self.refresh(), event.Skip()),
+        )
+
         # ------------------------------------------------------------
         # Detalle
         # ------------------------------------------------------------
@@ -878,12 +914,14 @@ class MainFrame(wx.Frame):
 
         self.text_filter.Clear()
         self.hidden_entries.clear()
+        self.only_bookmarks_check.SetValue(False)
 
         for checkbox in self.level_checks.values():
 
             checkbox.SetValue(True)
 
         self.refresh()
+        self.update_bookmarks_ui()
         self.filters_dirty = False
         self.speak(_("Filtros eliminados"))
 
@@ -1134,6 +1172,66 @@ class MainFrame(wx.Frame):
 
         return result
 
+    def get_bookmarked_entry_ids(self):
+        """Calcula el conjunto de IDs de entradas marcadas actualmente recorriendo el árbol."""
+        bookmarked_ids = set()
+        
+        # Necesitamos el árbol construido, pero refresh() llama a esto antes de populate.
+        # Por lo tanto, debemos asegurarnos de que la estructura sea consistente
+        # o reconstruir el árbol temporalmente. 
+        # Dado que queremos rendimiento y seguridad, usaremos la estructura
+        # que ya genera populate_..._tree, pero la lógica debe ser idéntica.
+        
+        # Dado que esto se llama dentro de refresh(), y populate_..._tree no se ha llamado aún,
+        # la estrategia más robusta es mapear las firmas de los marcadores con la lógica
+        # de construcción actual.
+        
+        # Volvamos a la estrategia de mapeo pero asegurando que get_entry_path_tuple
+        # coincide exactamente con la lógica de populate_source_tree, etc.
+        
+        # Para evitar errores, utilicemos el hecho de que ya tenemos las firmas (sig)
+        # almacenadas en self.bookmarks.
+        
+        for bookmark in self.bookmarks:
+            sig = bookmark['signature']
+            if sig[1] != self.current_view:
+                continue
+            
+            if sig[0] == 'entry':
+                # sig: ('entry', view, hash)
+                h = sig[2]
+                for entry in self.model.entries:
+                    if self.get_entry_hash(entry) == h:
+                        bookmarked_ids.add(entry.id)
+                        break
+            elif sig[0] == 'group':
+                # sig: ('group', view, path_tuple)
+                # La path_tuple es la ruta visual.
+                # Debemos encontrar todas las entradas cuya ruta visual coincida.
+                path_tuple = sig[2]
+                for entry in self.model.entries:
+                    # Esta función DEBE coincidir con la jerarquía del árbol
+                    entry_path = self.get_entry_path_tuple(entry, self.current_view)
+                    if entry_path[:len(path_tuple)] == path_tuple:
+                        bookmarked_ids.add(entry.id)
+                        
+        return bookmarked_ids
+
+    def get_entry_path_tuple(self, entry, view):
+        """Devuelve la tupla de ruta para una entrada en una vista dada."""
+        if view == 'source':
+            # ("NVDA", module) o (source_type, addon)
+            if entry.source_type == "NVDA":
+                return ("NVDA", entry.module)
+            return (entry.source_type, entry.addon)
+        elif view == 'level':
+            return (entry.level, entry.module)
+        elif view == 'time':
+            # hora, minuto
+            parts = entry.time_text.split(':')
+            return (parts[0], parts[1])
+        return ()
+
     # ========================================================================
     # ACTUALIZAR
     # ========================================================================
@@ -1146,24 +1244,33 @@ class MainFrame(wx.Frame):
         try:
             current_text = self.text_filter.GetValue()
             current_levels = self.selected_levels()
+            
+            # Nuevo filtro
+            bookmarked_ids = self.get_bookmarked_entry_ids() if self.only_bookmarks_check.GetValue() else None
 
             entries = self.model.filtered(
                 current_text,
                 current_levels,
                 self.hidden_entries,
+                bookmarked_entry_ids=bookmarked_ids,
             )
+
 
             if not entries:
                 # Desactivar temporalmente los eventos para evitar recursión
-                # Usar MessageDialog para personalizar botones si wx.MessageBox no permite cambiar el texto
-                dlg = wx.MessageDialog(self, _("No hay entradas que coincidan con el filtro"), _("Atención"), wx.OK | wx.ICON_WARNING)
-                dlg.SetOKCancelLabels(_("Aceptar"), "") # Intentar personalizar el botón
-                dlg.ShowModal()
-                dlg.Destroy()
+                # Comprobar si ya estamos mostrando el diálogo
+                if not getattr(self, "showing_no_entries_dialog", False):
+                    self.showing_no_entries_dialog = True
+                    wx.MessageBox(_("No hay entradas que coincidan con el filtro"), _("Atención"), wx.OK | wx.ICON_WARNING)
+                    self.showing_no_entries_dialog = False
                 
                 # Restaurar los valores del filtro sin invocar refresh() directamente
                 # Usar CallAfter para asegurar que la interfaz esté lista
                 wx.CallAfter(self.text_filter.SetValue, self.last_text_filter)
+                
+                # Desmarcar el checkbox de marcadores si estaba activo
+                if self.only_bookmarks_check.GetValue():
+                    wx.CallAfter(self.only_bookmarks_check.SetValue, False)
                 
                 for level, checkbox in self.level_checks.items():
                     checkbox.SetValue(level in self.last_selected_levels)
@@ -1537,11 +1644,37 @@ class MainFrame(wx.Frame):
         menu = wx.Menu()
 
         signature = self.get_node_signature(item)
-        is_bookmarked = any(b['signature'] == signature for b in self.bookmarks)
+        
+        # Detección tolerante de marcadores:
+        # Debemos verificar si la firma coincide con alguna de las guardadas,
+        # ignorando diferencias sutiles como los contadores de grupo.
+        
+        def is_signature_match(sig1, sig2):
+            if sig1[0] != sig2[0] or sig1[1] != sig2[1]:
+                return False
+            if sig1[0] == 'entry':
+                return sig1[2] == sig2[2]
+            else:
+                # Grupo: comparar rutas ignorando contadores
+                path1 = sig1[2]
+                path2 = sig2[2]
+                if len(path1) != len(path2):
+                    return False
+                for p1, p2 in zip(path1, path2):
+                    p1_clean = re.sub(r"\s+\(\d+\)$", "", p1).strip()
+                    p2_clean = re.sub(r"\s+\(\d+\)$", "", p2).strip()
+                    if p1_clean != p2_clean:
+                        return False
+                return True
+
+        is_bookmarked = any(is_signature_match(signature, b['signature']) for b in self.bookmarks)
         
         if is_bookmarked:
+            # Necesitamos obtener la firma exacta guardada para poder eliminarla correctamente
+            actual_bookmark = next(b for b in self.bookmarks if is_signature_match(signature, b['signature']))
+            actual_signature = actual_bookmark['signature']
             bookmark_item = menu.Append(wx.ID_ANY, _("Quitar de marcadores"))
-            self.Bind(wx.EVT_MENU, lambda e: self.on_remove_bookmark(signature), bookmark_item)
+            self.Bind(wx.EVT_MENU, lambda e: self.on_remove_bookmark(actual_signature), bookmark_item)
         else:
             bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
             self.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
@@ -1666,6 +1799,7 @@ class MainFrame(wx.Frame):
         
         self.bookmarks.append({'signature': signature, 'menu_id': bookmark_id, 'label': label})
         self.save_bookmarks()
+        self.update_bookmarks_ui()
         self.speak(_("Marcador añadido"))
 
     def on_remove_bookmark(self, signature):
@@ -1674,6 +1808,16 @@ class MainFrame(wx.Frame):
             self.bookmarks_menu.Remove(bookmark['menu_id'])
             self.bookmarks.remove(bookmark)
             self.save_bookmarks()
+            
+            # Si quitamos un marcador y el filtro está activo, hay que refrescar
+            # para que se oculte la entrada/grupo que ya no está marcado.
+            # Y si no quedan marcadores, desmarcar la casilla de filtro.
+            if self.only_bookmarks_check.GetValue():
+                if not self.bookmarks:
+                    self.only_bookmarks_check.SetValue(False)
+                self.refresh()
+            
+            self.update_bookmarks_ui()
             self.speak(_("Marcador eliminado"))
 
     def on_toggle_bookmark(self, node):
@@ -1726,17 +1870,44 @@ class MainFrame(wx.Frame):
 
         # Buscar el nodo
         root = self.tree.GetRootItem()
-        def find_node(node):
-            if self.get_node_signature(node) == signature:
-                return node
+        
+        def find_node_tolerant(node, target_sig):
+            # Comparación tolerante:
+            # 1. Tipo y vista deben coincidir.
+            # 2. Si es entrada, hash debe coincidir.
+            # 3. Si es grupo, los componentes de la ruta deben coincidir ignorando contadores.
+            
+            node_sig = self.get_node_signature(node)
+            
+            if node_sig[0] == target_sig[0] and node_sig[1] == target_sig[1]:
+                if node_sig[0] == 'entry':
+                    # Comparar hash
+                    if node_sig[2] == target_sig[2]:
+                        return node
+                else:
+                    # Comparar ruta de grupo ignorando contadores
+                    path1 = node_sig[2]
+                    path2 = target_sig[2]
+                    if len(path1) == len(path2):
+                        match = True
+                        for p1, p2 in zip(path1, path2):
+                            # Limpiar contadores antes de comparar
+                            p1_clean = re.sub(r"\s+\(\d+\)$", "", p1).strip()
+                            p2_clean = re.sub(r"\s+\(\d+\)$", "", p2).strip()
+                            if p1_clean != p2_clean:
+                                match = False
+                                break
+                        if match:
+                            return node
+                            
             child, cookie = self.tree.GetFirstChild(node)
             while child.IsOk():
-                found = find_node(child)
+                found = find_node_tolerant(child, target_sig)
                 if found: return found
                 child, cookie = self.tree.GetNextChild(node, cookie)
             return None
             
-        target = find_node(root)
+        target = find_node_tolerant(root, signature)
         
         if target:
             self.tree.SelectItem(target)
