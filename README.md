@@ -6,11 +6,13 @@ prototipo de una interfaz para visualizar el registro de NVDA de forma estructur
 
 * Al abrir el visor se carga automáticamente nvda.log desde %temp%.
 * En el menú Archivo están las opciones para abrir nvda.log, nvda-old.log o cualquier archivo .log
+* Archivo/Guardar como.. guarda todas las enradas de la vista actual en un archivo de texto. Vista actual quiere decir las entradas que cumplan los filtros aplicados.
 
 El menú contextual del árbol tiene las opciones
 - Exportar que guarda en un archivo de texto el contenido de la rama que cuelga del nodo seleccionado.
 - Quitar filtro (control+Z) que limpia los filtros aplicados 
 - Añadir a marcadores / Quitar de marcadores
+- Ocultar
 
 En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre una línea que haga referencia a un archivo .py y se pulsa la barra espaciadora se abrirá dicho archivo en el editor seleccionado en ajustes.
 Si en los ajustes se ha definido la ruta a una carpeta local con el código fuente de NVDA, también se abrirá en el editor el archivo correspondiente al .pyc indicado en el tracebak.
