@@ -611,8 +611,14 @@ class MainFrame(wx.Frame):
         file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Cargar registro"), subMenu=load_menu))
 
         self.reload_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Recargar registro\tF5")))
+        
+        self.save_as_item = file_menu.Append(
+            wx.ID_ANY,
+            _("&Guardar como...\tCtrl+S"),
+        )
+        self.Bind(wx.EVT_MENU, self.on_save_as, self.save_as_item)
 
-        self.settings_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Ajustes\tCtrl+S")))
+        self.settings_item = file_menu.Append(wx.MenuItem(file_menu, wx.ID_ANY, _("&Ajustes\tCtrl+A")))
 
         file_menu.AppendSeparator()
 
@@ -1957,6 +1963,47 @@ class MainFrame(wx.Frame):
             child, cookie = self.tree.GetNextChild(node, cookie)
 
         return entries
+
+    def on_save_as(self, event):
+        # Obtener todas las entradas filtradas actuales
+        current_text = self.text_filter.GetValue()
+        current_levels = self.selected_levels()
+        entries = self.model.filtered(
+            current_text,
+            current_levels,
+            self.hidden_entries,
+        )
+
+        if not entries:
+            wx.MessageBox(_("No hay entradas para guardar con los filtros actuales."), _("Atención"), wx.OK | wx.ICON_WARNING)
+            return
+
+        dialog = wx.FileDialog(
+            self,
+            _("Guardar registro como"),
+            wildcard=_("Archivo de registro (*.log;*.txt)|*.log;*.txt"),
+            style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
+        )
+
+        try:
+            if dialog.ShowModal() != wx.ID_OK:
+                return
+
+            path = Path(dialog.GetPath())
+
+            with path.open("w", encoding="utf-8") as f:
+                for entry in sorted(entries, key=lambda e: e.sort_time):
+                    f.write(entry.header_text + "\n")
+                    if entry.message:
+                        f.write(entry.message + "\n")
+                    if entry.traceback:
+                        f.write("\n".join(entry.traceback) + "\n")
+                    f.write("\n")
+            
+            self.speak(_("Registro guardado"))
+
+        finally:
+            dialog.Destroy()
 
     def on_export(self, node):
 
