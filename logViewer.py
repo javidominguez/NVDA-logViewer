@@ -1386,30 +1386,49 @@ class MainFrame(wx.Frame):
         if not root.IsOk():
             return False
 
-        def find_node(node):
-            node_sig = self.get_node_signature(node)
-            if node_sig == target_signature:
-                return node
+        def find_node_tolerant(node, target_sig):
+            # Comparación tolerante:
+            # 1. Tipo y vista deben coincidir.
+            # 2. Si es entrada, hash debe coincidir.
+            # 3. Si es grupo, los componentes de la ruta deben coincidir ignorando contadores.
             
+            node_sig = self.get_node_signature(node)
+            
+            if node_sig[0] == target_sig[0] and node_sig[1] == target_sig[1]:
+                if node_sig[0] == 'entry':
+                    # Comparar hash
+                    if node_sig[2] == target_sig[2]:
+                        return node
+                else:
+                    # Comparar ruta de grupo ignorando contadores
+                    path1 = node_sig[2]
+                    path2 = target_sig[2]
+                    if len(path1) == len(path2):
+                        match = True
+                        for p1, p2 in zip(path1, path2):
+                            # Limpiar contadores antes de comparar
+                            p1_clean = re.sub(r"\s+\(\d+\)$", "", p1).strip()
+                            p2_clean = re.sub(r"\s+\(\d+\)$", "", p2).strip()
+                            if p1_clean != p2_clean:
+                                match = False
+                                break
+                        if match:
+                            return node
+                            
             child, cookie = self.tree.GetFirstChild(node)
             while child.IsOk():
-                found = find_node(child)
-                if found:
-                    return found
+                found = find_node_tolerant(child, target_sig)
+                if found: return found
                 child, cookie = self.tree.GetNextChild(node, cookie)
             return None
         
-        target = find_node(root)
+        target = find_node_tolerant(root, target_signature)
         if target:
             self.tree.SelectItem(target)
             self.tree.EnsureVisible(target)
             self.tree.SetFocus()
             return True
         else:
-            # Re-enabling debug temporarily to see why lookup fails
-            print(f"Debug [restore_focus_by_signature]: Target signature NOT found: {target_signature}")
-            return False
-            print(f"Debug: Failed to find target signature: {target_signature}")
             return False
 
     def populate_level_tree(self, entries):
@@ -1915,16 +1934,20 @@ class MainFrame(wx.Frame):
             self.tree.SetFocus()
             # Éxito: el estado temporal se descarta implícitamente
         else:
-            # Comprobar filtros
-            filters_active = self.text_filter.GetValue() != "" or any(not checkbox.GetValue() for checkbox in self.level_checks.values())
+            # Comprobar filtros (incluyendo entradas ocultadas manualmente)
+            filters_active = (
+                self.text_filter.GetValue() != "" 
+                or any(not checkbox.GetValue() for checkbox in self.level_checks.values())
+                or len(self.hidden_entries) > 0
+            )
             
             if filters_active:
-                msg = _("No se puede acceder al marcador con este filtro aplicado. ¿Quieres quitar el filtro?")
+                msg = _("No se puede acceder al marcador con filtros o elementos ocultos. ¿Quieres quitar todos los filtros?")
                 dlg = wx.MessageDialog(self, msg, _("Marcador no encontrado"), wx.YES_NO | wx.ICON_QUESTION)
                 if dlg.ShowModal() == wx.ID_YES:
                     self.on_clear_filters(None)
                     # Intentar buscar de nuevo
-                    target = find_node(root)
+                    target = find_node_tolerant(root, signature)
                     if target:
                         self.tree.SelectItem(target)
                         self.tree.EnsureVisible(target)
