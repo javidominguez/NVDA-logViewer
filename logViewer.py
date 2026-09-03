@@ -665,6 +665,13 @@ class MainFrame(wx.Frame):
             wx.ID_ANY,
             _("&Quitar filtros\tCtrl+Z"),
         )
+        
+        self.restore_hidden_item = view_menu.Append(
+            wx.ID_ANY,
+            _("&Restaurar elementos ocultos"),
+        )
+        self.restore_hidden_item.Enable(False)
+        self.Bind(wx.EVT_MENU, self.on_restore_hidden, self.restore_hidden_item)
 
         # ----------------------------------------------------------------
         # Marcadores
@@ -1236,6 +1243,11 @@ class MainFrame(wx.Frame):
     # ACTUALIZAR
     # ========================================================================
 
+    def on_restore_hidden(self, event):
+        self.hidden_entries.clear()
+        self.refresh()
+        self.speak(_("Elementos ocultos restaurados"))
+
     def refresh(self):
         if getattr(self, "is_refreshing", False):
             return
@@ -1283,6 +1295,10 @@ class MainFrame(wx.Frame):
                 self.last_selected_levels = current_levels
 
             self.tree_entries.clear()
+            
+            # Actualizar estado de "Restaurar elementos ocultos"
+            self.restore_hidden_item.Enable(len(self.hidden_entries) > 0)
+            self.restore_hidden_item.SetItemLabel(_("&Restaurar {} elementos ocultos").format(len(self.hidden_entries)))
 
             if self.current_view == "source":
 
