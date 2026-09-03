@@ -1692,8 +1692,8 @@ class MainFrame(wx.Frame):
         def restore_initial_state():
             if initial_signature:
                 # Restaurar vista
-                if self.current_view != initial_signature['view']:
-                    self.change_view(initial_signature['view'])
+                if self.current_view != initial_signature[1]:
+                    self.change_view(initial_signature[1])
                     self.source_view_item.Check(self.current_view == "source")
                     self.level_view_item.Check(self.current_view == "level")
                     self.time_view_item.Check(self.current_view == "time")
@@ -1718,8 +1718,8 @@ class MainFrame(wx.Frame):
 
         # 2. Intentar navegar al marcador destino
         # Cambiar vista
-        if self.current_view != signature['view']:
-            self.change_view(signature['view'])
+        if self.current_view != signature[1]:
+            self.change_view(signature[1])
             self.source_view_item.Check(self.current_view == "source")
             self.level_view_item.Check(self.current_view == "level")
             self.time_view_item.Check(self.current_view == "time")
