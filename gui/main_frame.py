@@ -240,16 +240,14 @@ class MainFrame(wx.Frame):
 					self.refresh()
 			return
 
-		# F6: Cambiar vista
+		# F6: Cambiar vista; Shift+F6 recorre las vistas en sentido inverso.
 		elif key_code == wx.WXK_F6:
-
-			# Orden: Origen -> Nivel -> Cronológico
-			if self.current_view == "source":
-				next_view = "level"
-			elif self.current_view == "level":
-				next_view = "time"
+			view_order = ("source", "level", "time")
+			current_index = view_order.index(self.current_view)
+			if event.ShiftDown():
+				next_view = view_order[(current_index - 1) % len(view_order)]
 			else:
-				next_view = "source"
+				next_view = view_order[(current_index + 1) % len(view_order)]
 
 			self.change_view(next_view)
 
