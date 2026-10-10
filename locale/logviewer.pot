@@ -414,3 +414,19 @@ msgstr ""
 #: logViewer.py:2228
 msgid "Traceback:"
 msgstr ""
+
+#: gui/log_detail_view.py
+msgid "Seleccionar todo"
+msgstr ""
+
+#: gui/log_detail_view.py
+msgid "Copiar"
+msgstr ""
+
+#: gui/log_detail_view.py
+msgid "Abrir {} — línea {}"
+msgstr ""
+
+#: gui/log_detail_view.py
+msgid "No se pudo encontrar el archivo referenciado: {}"
+msgstr ""

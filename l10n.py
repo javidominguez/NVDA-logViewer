@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: UTF-8 -*-
 
-# A part of nvGUI4Tesseract, a light and accessible graphical interface to handle the OCR Tesseract.
-# Copyright (C) 2022 Javi Dominguez 
+# Part of nvGUI4Tesseract, a light and accessible graphical interface for
+# handling OCR with Tesseract.
+# Copyright (C) 2022 Javi Dominguez
 # This file is covered by the GNU General Public License.
 # See the file COPYING for more details.
 
@@ -15,14 +16,19 @@ DOMAIN = "logviewer"
 LOCALE_DIR = "locale"
 
 # Inicialización del idioma
-language = None
 try:
-    lancode = locale.normalize(locale.getdefaultlocale()[0].split("_")[0]).split("_")[0]
-except:
-    lancode = 'en'
+	language_code = locale.getdefaultlocale()[0].split("_")[0]
+	lancode = locale.normalize(language_code).split("_")[0]
+except Exception:
+	lancode = 'en'
 
 # Configurar gettext
-translation = gettext.translation(DOMAIN, localedir=LOCALE_DIR, languages=[lancode], fallback=True)
+translation = gettext.translation(
+	DOMAIN,
+	localedir=LOCALE_DIR,
+	languages=[lancode],
+	fallback=True,
+)
 translation.install()
 _ = translation.gettext
 

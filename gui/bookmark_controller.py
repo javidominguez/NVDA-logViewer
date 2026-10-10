@@ -1,0 +1,185 @@
+import re
+import wx
+from l10n import _
+
+
+class BookmarkController:
+	def __init__(self, frame):
+		self.frame = frame
+
+	def on_add_bookmark(self, node):
+		frame = self.frame
+		signature = frame.get_node_signature(node)
+		raw_label = frame.get_node_path(node)
+
+		label = re.sub(r"\s+\(\d+\)$", "", raw_label)
+
+		if " — " in label:
+			parts = label.split(" — ")
+			if len(parts) >= 4:
+				label = parts[-1].rstrip(" )")
+
+		if any(b['signature'] == signature for b in frame.bookmarks):
+			frame.speak(_("Ya existe ese marcador"))
+			return
+
+		bookmark_id = wx.NewIdRef()
+		bookmark_item = frame.bookmarks_menu.Append(bookmark_id, label)
+		frame.Bind(wx.EVT_MENU, lambda e: self.on_bookmark_selected(signature), bookmark_item)
+
+		frame.bookmarks.append({
+			'signature': signature,
+			'menu_id': bookmark_id,
+			'label': label,
+		})
+		frame.save_bookmarks()
+		frame.speak(_("Marcador añadido"))
+
+	def on_bookmark_selected(self, signature):
+		frame = self.frame
+		initial_selection = frame.tree.GetSelection()
+		initial_signature = (
+			frame.get_node_signature(initial_selection)
+			if initial_selection.IsOk()
+			else None
+		)
+
+		def restore_initial_state():
+			if initial_signature:
+				if frame.current_view != initial_signature[1]:
+					frame.change_view(initial_signature[1])
+					frame.source_view_item.Check(frame.current_view == "source")
+					frame.level_view_item.Check(frame.current_view == "level")
+					frame.time_view_item.Check(frame.current_view == "time")
+
+				target = frame._find_node_by_signature(initial_signature)
+				if target:
+					frame.tree.SelectItem(target)
+					frame.tree.EnsureVisible(target)
+					frame.tree.SetFocus()
+
+		if frame.current_view != signature[1]:
+			frame.change_view(signature[1])
+			frame.source_view_item.Check(frame.current_view == "source")
+			frame.level_view_item.Check(frame.current_view == "level")
+			frame.time_view_item.Check(frame.current_view == "time")
+
+		target = frame._find_node_by_signature(signature)
+
+		if target:
+			frame.tree.SelectItem(target)
+			frame.tree.EnsureVisible(target)
+			frame.tree.SetFocus()
+		else:
+			filters_active = (
+				frame.text_filter.GetValue() != ""
+				or any(not checkbox.GetValue() for checkbox in frame.level_checks.values())
+				or len(frame.hidden_entries) > 0
+			)
+
+			if filters_active:
+				msg = _(
+					"No se puede acceder al marcador con filtros o elementos ocultos. "
+					"¿Quieres quitar todos los filtros?"
+				)
+				dlg = wx.MessageDialog(
+					self,
+					msg,
+					_("Marcador no encontrado"),
+					wx.YES_NO | wx.ICON_QUESTION,
+				)
+				if dlg.ShowModal() == wx.ID_YES:
+					frame.on_clear_filters(None)
+					target = frame._find_node_by_signature(signature)
+					if target:
+						frame.tree.SelectItem(target)
+						frame.tree.EnsureVisible(target)
+						frame.tree.SetFocus()
+						return
+
+			frame.speak(_("No se pudo encontrar el marcador en la vista actual"))
+			restore_initial_state()
+
+	def on_hide_node(self, node):
+		frame = self.frame
+		old_hidden_entries = frame.hidden_entries.copy()
+
+		entries = frame.get_all_entries_under_node(node)
+		for entry in entries:
+			frame.hidden_entries.add(entry.id)
+
+		frame.refresh()
+
+		if (
+			not frame.tree.GetRootItem().IsOk()
+			or not frame.tree.GetFirstChild(frame.tree.GetRootItem())[0].IsOk()
+		):
+			frame.hidden_entries = old_hidden_entries
+			frame.refresh()
+		else:
+			frame.speak(_("Entradas ocultadas"))
+
+	def on_remove_bookmark(self, signature):
+		frame = self.frame
+		bookmark = next((b for b in frame.bookmarks if b['signature'] == signature), None)
+		if bookmark:
+			frame.bookmarks_menu.Remove(bookmark['menu_id'])
+			frame.bookmarks.remove(bookmark)
+			frame.save_bookmarks()
+
+			frame.speak(_("Marcador eliminado"))
+
+	def on_toggle_bookmark(self, node):
+		frame = self.frame
+		signature = frame.get_node_signature(node)
+		if any(b['signature'] == signature for b in frame.bookmarks):
+			self.on_remove_bookmark(signature)
+		else:
+			self.on_add_bookmark(node)
+
+	def on_tree_context_menu(self, event):
+		frame = self.frame
+		item = frame.tree.GetSelection()
+
+		if not item.IsOk():
+			return
+
+		menu = wx.Menu()
+
+		signature = frame.get_node_signature(item)
+
+		is_bookmarked = any(
+			frame._signatures_equal(signature, bookmark['signature'])
+			for bookmark in frame.bookmarks
+		)
+
+		if is_bookmarked:
+			actual_bookmark = next(
+				bookmark
+				for bookmark in frame.bookmarks
+				if frame._signatures_equal(signature, bookmark['signature'])
+			)
+			actual_signature = actual_bookmark['signature']
+			bookmark_item = menu.Append(wx.ID_ANY, _("Quitar de marcadores"))
+			frame.Bind(
+				wx.EVT_MENU,
+				lambda e: self.on_remove_bookmark(actual_signature),
+				bookmark_item,
+			)
+		else:
+			bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
+			frame.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
+
+		if frame.current_view in ("source", "level", "time"):
+			export_item = menu.Append(wx.ID_ANY, _("Exportar"))
+			frame.Bind(wx.EVT_MENU, lambda e: frame.on_export(item), export_item)
+
+		clear_filters_item = menu.Append(wx.ID_ANY, _("Quitar filtros"))
+		frame.Bind(wx.EVT_MENU, frame.on_clear_filters, clear_filters_item)
+
+		hide_item = menu.Append(wx.ID_ANY, _("Ocultar"))
+		frame.Bind(wx.EVT_MENU, lambda e: self.on_hide_node(item), hide_item)
+
+		frame.PopupMenu(menu)
+		menu.Destroy()
+
