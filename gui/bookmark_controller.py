@@ -147,7 +147,7 @@ class BookmarkController:
 					"¿Quieres quitar todos los filtros?"
 				)
 				dlg = wx.MessageDialog(
-					self,
+					frame,
 					msg,
 					_("Marcador no encontrado"),
 					wx.YES_NO | wx.ICON_QUESTION,
