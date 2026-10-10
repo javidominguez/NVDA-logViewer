@@ -2,10 +2,71 @@ import re
 import wx
 from l10n import _
 
+from bookmark_store import entry_hash
+
 
 class BookmarkController:
 	def __init__(self, frame):
 		self.frame = frame
+
+	def bookmarks_for_entries(self, entries):
+		frame = self.frame
+		entries = list(entries)
+		exported_entry_hashes = {}
+		for entry in entries:
+			message = entry.message
+			if message and not entry.traceback:
+				message += "\n"
+			exported_entry_hashes.setdefault(
+				entry_hash(entry),
+				entry_hash(entry, message),
+			)
+		matching_bookmarks = []
+
+		for bookmark in frame.bookmarks:
+			signature = bookmark.get("signature")
+			if not isinstance(signature, (list, tuple)) or len(signature) != 3:
+				continue
+
+			kind, view, value = signature
+			if kind == "entry":
+				matches = value in exported_entry_hashes
+			elif kind == "group":
+				group_path = tuple(value) if isinstance(value, (list, tuple)) else ()
+				matches = bool(group_path) and any(
+					self._entry_path(entry, view)[:len(group_path)] == group_path
+					for entry in entries
+				)
+			else:
+				matches = False
+
+			if matches:
+				if kind == "entry":
+					value = exported_entry_hashes[value]
+					signature = (kind, view, value)
+				matching_bookmarks.append({
+					"signature": signature,
+					"label": bookmark.get("label", ""),
+				})
+
+		return matching_bookmarks
+
+	@staticmethod
+	def _entry_path(entry, view):
+		if view == "source":
+			if entry.source_type == "NVDA":
+				return "NVDA", entry.module, entry.level
+			if entry.source_type == "Global Plugin":
+				return "Global Plugins", entry.addon, entry.level
+			if entry.source_type == "App Module":
+				return "App Modules", entry.addon, entry.level
+		elif view == "level":
+			return entry.level, entry.module
+		elif view == "time":
+			parts = entry.time_text.split(":")
+			hour, minute = parts[0], parts[1]
+			return f"{hour}:00", f"{hour}:{minute}"
+		return ()
 
 	def on_add_bookmark(self, node):
 		frame = self.frame
@@ -19,7 +80,10 @@ class BookmarkController:
 			if len(parts) >= 4:
 				label = parts[-1].rstrip(" )")
 
-		if any(b['signature'] == signature for b in frame.bookmarks):
+		if any(
+			frame._signatures_equal(bookmark['signature'], signature)
+			for bookmark in frame.bookmarks
+		):
 			frame.speak(_("Ya existe ese marcador"))
 			return
 
@@ -121,7 +185,13 @@ class BookmarkController:
 
 	def on_remove_bookmark(self, signature):
 		frame = self.frame
-		bookmark = next((b for b in frame.bookmarks if b['signature'] == signature), None)
+		bookmark = next(
+			(
+				item for item in frame.bookmarks
+				if frame._signatures_equal(item['signature'], signature)
+			),
+			None,
+		)
 		if bookmark:
 			frame.bookmarks_menu.Remove(bookmark['menu_id'])
 			frame.bookmarks.remove(bookmark)
@@ -132,7 +202,10 @@ class BookmarkController:
 	def on_toggle_bookmark(self, node):
 		frame = self.frame
 		signature = frame.get_node_signature(node)
-		if any(b['signature'] == signature for b in frame.bookmarks):
+		if any(
+			frame._signatures_equal(bookmark['signature'], signature)
+			for bookmark in frame.bookmarks
+		):
 			self.on_remove_bookmark(signature)
 		else:
 			self.on_add_bookmark(node)

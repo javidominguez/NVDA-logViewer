@@ -7,7 +7,11 @@ import wx
 import nvdaControllerClient
 from l10n import _
 
-from bookmark_store import BookmarkStore, entry_hash
+from bookmark_store import (
+	BookmarkStore,
+	entry_hash,
+	extract_embedded_bookmarks,
+)
 from config import load_settings as read_settings
 from config import save_settings as write_settings
 from logs.exporter import write_entries as export_entries
@@ -107,7 +111,7 @@ class MainFrame(wx.Frame):
 	def get_log_hash(self, path):
 		return self.bookmark_store.get_log_hash(path)
 
-	def load_bookmarks(self):
+	def load_bookmarks(self, embedded_bookmarks=()):
 		"""Carga marcadores para el log actual."""
 		# Limpiar menú de marcadores
 		while self.bookmarks_menu.GetMenuItemCount() > 0:
@@ -120,6 +124,16 @@ class MainFrame(wx.Frame):
 			return
 
 		data = self.bookmark_store.load(self.current_log_hash)
+		for embedded_bookmark in embedded_bookmarks:
+			if any(
+				self._signatures_equal(
+					embedded_bookmark["signature"],
+					bookmark["signature"],
+				)
+				for bookmark in data
+			):
+				continue
+			data.append(embedded_bookmark)
 
 		# Reconstruir el menú
 		for entry in data:
@@ -139,6 +153,9 @@ class MainFrame(wx.Frame):
 				'menu_id': bookmark_id,
 				'label': label,
 			})
+
+		if embedded_bookmarks:
+			self.save_bookmarks()
 
 	def save_bookmarks(self):
 		"""Guarda los marcadores actuales en un archivo."""
@@ -388,6 +405,7 @@ class MainFrame(wx.Frame):
 
 			return
 
+		text, embedded_bookmarks = extract_embedded_bookmarks(text)
 		self.model.entries = parse_log(text)
 
 		is_reload = (self.current_file_path == path)
@@ -395,7 +413,7 @@ class MainFrame(wx.Frame):
 		if not is_reload:
 			self.current_file_path = path
 			self.current_log_hash = self.bookmark_store.get_log_hash(path)
-			self.load_bookmarks()
+			self.load_bookmarks(embedded_bookmarks)
 		else:
 			self.current_file_path = path
 
@@ -614,7 +632,8 @@ class MainFrame(wx.Frame):
 		return self.bookmark_controller.on_tree_context_menu(event)
 
 	def write_entries(self, file_path, entries):
-		export_entries(file_path, entries)
+		bookmarks = self.bookmark_controller.bookmarks_for_entries(entries)
+		export_entries(file_path, entries, bookmarks)
 
 	def on_save_as(self, event):
 		current_text = self.text_filter.GetValue()
