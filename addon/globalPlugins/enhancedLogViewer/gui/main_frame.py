@@ -258,6 +258,14 @@ class MainFrame(wx.Frame):
 		key_code = event.GetKeyCode()
 		control_down = event.ControlDown()
 
+		# Enter: Move from the selected tree item to its details.
+		if (
+			self.tree.HasFocus()
+			and key_code in (wx.WXK_RETURN, wx.WXK_NUMPAD_ENTER)
+		):
+			self.detail.SetFocus()
+			return
+
 		# F1: Open help.
 		if key_code == wx.WXK_F1:
 			self.on_help(event)
@@ -542,8 +550,6 @@ class MainFrame(wx.Frame):
 			else:
 				self.last_text_filter = current_text
 				self.last_selected_levels = current_levels
-
-			self.tree_entries.clear()
 
 			self.restore_hidden_item.Enable(len(self.hidden_entries) > 0)
 			self.restore_hidden_item.SetItemLabel(

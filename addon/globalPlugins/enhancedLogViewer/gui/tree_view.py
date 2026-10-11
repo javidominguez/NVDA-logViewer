@@ -8,6 +8,10 @@ from ..logs.log_model import LogModel
 
 
 class LogTreeView:
+	NAVIGATOR_OBJECT_DEV_INFO_SOURCE = (
+		"globalCommands.script_navigatorObject_devInfo"
+	)
+
 	def __init__(self, tree, detail, model, current_view, entry_label, entry_hash):
 		self.tree = tree
 		self.detail = detail
@@ -17,6 +21,26 @@ class LogTreeView:
 		self.entry_hash = entry_hash
 		self.entries_by_node = {}
 		self.destroyed = False
+
+	@classmethod
+	def _keep_latest_navigator_object_dev_info(cls, entries):
+		dev_info_entries = [
+			entry
+			for entry in entries
+			if entry.source_raw == cls.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
+		]
+		if len(dev_info_entries) < 2:
+			return entries
+
+		latest_entry = max(dev_info_entries, key=lambda entry: entry.sort_time)
+		return [
+			entry
+			for entry in entries
+			if (
+				entry.source_raw != cls.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
+				or entry is latest_entry
+			)
+		]
 
 	def on_tree_destroy(self, event):
 		self.destroyed = True
@@ -131,6 +155,7 @@ class LogTreeView:
 			self.get_expanded_signatures(root) if root and root.IsOk() else set()
 		)
 
+		self.entries_by_node.clear()
 		self.tree.DeleteAllItems()
 		self.detail.Clear()
 		return target_signature, previous_entry, expanded_signatures
@@ -144,14 +169,22 @@ class LogTreeView:
 		entries=None,
 	):
 		self.restore_expanded_state(root, expanded_signatures)
+		focus_restored = self.restore_focus_by_signature(target_signature)
 		if (
-			not self.restore_focus_by_signature(target_signature)
+			not focus_restored
 			and previous_entry is not None
 			and entries is not None
 		):
-			self.restore_closest_focus(previous_entry, entries)
+			focus_restored = self.restore_closest_focus(previous_entry, entries)
+		if not focus_restored:
+			first_item, _cookie = self.tree.GetFirstChild(root)
+			if first_item.IsOk():
+				self.tree.SelectItem(first_item)
+				self.tree.EnsureVisible(first_item)
+				self.tree.SetFocus()
 
 	def populate_level_tree(self, entries):
+		entries = self._keep_latest_navigator_object_dev_info(entries)
 		target_sig, previous_entry, expanded_sigs = self.save_tree_state()
 		root = self.tree.AddRoot("Registro por nivel")
 
@@ -180,6 +213,7 @@ class LogTreeView:
 		)
 
 	def populate_source_tree(self, entries):
+		entries = self._keep_latest_navigator_object_dev_info(entries)
 		target_sig, _previous_entry, expanded_sigs = self.save_tree_state()
 		root = self.tree.AddRoot(_("NVDA Log"))
 
@@ -189,11 +223,8 @@ class LogTreeView:
 
 		special_entries = [
 			entry for entry in entries
-			if entry.source_raw == "globalCommands.script_navigatorObject_devInfo"
+			if entry.source_raw == self.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 		]
-		if special_entries:
-			special_entries.sort(key=lambda entry: entry.sort_time, reverse=True)
-			special_entries = [special_entries[0]]
 
 		for entry in special_entries:
 			node = self.tree.AppendItem(
@@ -204,7 +235,7 @@ class LogTreeView:
 
 		groups = {}
 		for entry in entries:
-			if entry.source_raw == "globalCommands.script_navigatorObject_devInfo":
+			if entry.source_raw == self.NAVIGATOR_OBJECT_DEV_INFO_SOURCE:
 				continue
 			if entry.source_type == "NVDA":
 				key = ("NVDA", entry.module)
@@ -248,6 +279,7 @@ class LogTreeView:
 		self.restore_tree_state(root, target_sig, expanded_sigs)
 
 	def populate_time_tree(self, entries):
+		entries = self._keep_latest_navigator_object_dev_info(entries)
 		target_sig, _previous_entry, expanded_sigs = self.save_tree_state()
 		root = self.tree.AddRoot(_("Chronological log"))
 
