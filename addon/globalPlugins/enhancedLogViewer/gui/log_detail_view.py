@@ -201,6 +201,13 @@ class LogDetailView:
 			self.detail.Clear()
 			return
 
+		if (
+			len(entries) == 1
+			and entries[0].source_raw == "globalCommands.script_navigatorObject_devInfo"
+		):
+			self.detail.SetValue(entries[0].message)
+			return
+
 		if len(entries) == 1:
 			entry = entries[0]
 			lines = [

@@ -1,6 +1,7 @@
 from pathlib import Path
 import wx
 import addonHandler
+import globalVars
 
 addonHandler.initTranslation()
 
@@ -52,7 +53,7 @@ def build_menu(frame):
 	frame.Bind(wx.EVT_MENU, frame.on_save_as, frame.save_as_item)
 
 	frame.settings_item = file_menu.Append(
-		wx.MenuItem(file_menu, wx.ID_ANY, _("&Settings\tCtrl+A"))
+		wx.MenuItem(file_menu, wx.ID_ANY, _("&Settings\tCtrl+Shift+S"))
 	)
 
 	file_menu.AppendSeparator()
@@ -206,17 +207,19 @@ def bind_events(frame):
 
 	frame.Bind(
 		wx.EVT_MENU,
-		lambda event: frame.load_file(
-			Path.home() / "AppData" / "Local" / "Temp" / "nvda.log"
-		),
+		lambda event: frame.load_file(Path(globalVars.appArgs.logFileName))
+		if globalVars.appArgs.logFileName
+		else None,
 		frame.load_nvda_item,
 	)
 
 	frame.Bind(
 		wx.EVT_MENU,
 		lambda event: frame.load_file(
-			Path.home() / "AppData" / "Local" / "Temp" / "nvda-old.log"
-		),
+			Path(globalVars.appArgs.logFileName).with_name("nvda-old.log")
+		)
+		if globalVars.appArgs.logFileName
+		else None,
 		frame.load_nvda_old_item,
 	)
 

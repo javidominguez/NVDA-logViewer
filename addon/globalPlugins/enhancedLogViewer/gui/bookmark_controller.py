@@ -123,7 +123,7 @@ class BookmarkController:
 				if target:
 					frame.tree.SelectItem(target)
 					frame.tree.EnsureVisible(target)
-					frame.tree.SetFocus()
+					wx.CallAfter(frame.detail.SetFocus)
 
 		if frame.current_view != signature[1]:
 			frame.change_view(signature[1])
@@ -136,7 +136,7 @@ class BookmarkController:
 		if target:
 			frame.tree.SelectItem(target)
 			frame.tree.EnsureVisible(target)
-			frame.tree.SetFocus()
+			wx.CallAfter(frame.detail.SetFocus)
 		else:
 			filters_active = (
 				frame.text_filter.GetValue() != ""
@@ -161,7 +161,7 @@ class BookmarkController:
 					if target:
 						frame.tree.SelectItem(target)
 						frame.tree.EnsureVisible(target)
-						frame.tree.SetFocus()
+						wx.CallAfter(frame.detail.SetFocus)
 						return
 
 			frame.speak(_("Could not find the bookmark in the current view"))

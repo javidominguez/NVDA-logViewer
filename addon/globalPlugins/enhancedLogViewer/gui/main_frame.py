@@ -232,6 +232,27 @@ class MainFrame(wx.Frame):
 				self.tree.SetFocus()
 				return
 
+	def focus_navigator_object_dev_info(self):
+		if self.current_view != "source":
+			self.change_view("source")
+			self.source_view_item.Check(True)
+			self.level_view_item.Check(False)
+			self.time_view_item.Check(False)
+
+		dev_info_entries = [
+			entry
+			for entry in self.model.entries
+			if entry.source_raw == "globalCommands.script_navigatorObject_devInfo"
+		]
+		if dev_info_entries:
+			dev_info_entry = max(dev_info_entries, key=lambda entry: entry.sort_time)
+			for node, entry in self.tree_entries.items():
+				if entry == dev_info_entry:
+					self.tree.SelectItem(node)
+					self.tree.EnsureVisible(node)
+					break
+		self.detail.SetFocus()
+
 	def on_key(self, event):
 
 		key_code = event.GetKeyCode()
@@ -440,7 +461,7 @@ class MainFrame(wx.Frame):
 		self.refresh(allow_empty=allow_empty)
 
 		if follow_tail:
-			self.focus_last_visible_entry()
+			self.focus_navigator_object_dev_info()
 
 		if announce:
 			message = _("Log reloaded") if is_reload else _("Log loaded")
@@ -454,7 +475,7 @@ class MainFrame(wx.Frame):
 		self.SetTitle(
 			_("NVDA Log Viewer — {}").format(path.name)
 		)
-		if announce or follow_tail:
+		if announce:
 			self.tree.SetFocus()
 
 	# ========================================================================

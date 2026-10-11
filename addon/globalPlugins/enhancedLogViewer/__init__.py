@@ -64,7 +64,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 		if not logPath:
 			return
 		if self._frame is None or self._frame.IsBeingDeleted():
-			dataDir = Path(NVDAState.WritePaths.configDir) / "addons" / "logViewer"
+			dataDir = Path(NVDAState.WritePaths.configDir) / "logViewer"
 			dataDir.mkdir(parents=True, exist_ok=True)
 			settingsPath = dataDir / "settings.json"
 			self._frame = MainFrame(
@@ -76,6 +76,7 @@ class GlobalPlugin(globalPluginHandler.GlobalPlugin):
 			self._frame.Bind(wx.EVT_CLOSE, self._onFrameClose)
 		self._frame.Show()
 		self._frame.Raise()
+		wx.CallAfter(self._frame.focus_navigator_object_dev_info)
 
 	def _refreshLogViewer(self, followTail):
 		if self._terminated:
