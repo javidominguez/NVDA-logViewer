@@ -11,18 +11,18 @@ import gettext
 import locale
 import sys
 
-# Definir el dominio de traducción
+# Define the translation domain.
 DOMAIN = "logviewer"
 LOCALE_DIR = "locale"
 
-# Inicialización del idioma
+# Initialize the language.
 try:
 	language_code = locale.getdefaultlocale()[0].split("_")[0]
 	lancode = locale.normalize(language_code).split("_")[0]
 except Exception:
 	lancode = 'en'
 
-# Configurar gettext
+# Configure gettext.
 translation = gettext.translation(
 	DOMAIN,
 	localedir=LOCALE_DIR,
@@ -32,6 +32,5 @@ translation = gettext.translation(
 translation.install()
 _ = translation.gettext
 
-# Exportar la función _ para uso global si es necesario
+# Export the _ function for global use if needed.
 sys.modules[__name__].__dict__['_'] = _
-

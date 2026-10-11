@@ -8,7 +8,7 @@ def build_menu(frame):
 	menubar = wx.MenuBar()
 
 	# ----------------------------------------------------------------
-	# Archivo
+	# File
 	# ----------------------------------------------------------------
 
 	file_menu = wx.Menu()
@@ -27,57 +27,57 @@ def build_menu(frame):
 
 	frame.open_item = load_menu.Append(
 		wx.ID_OPEN,
-		_("&Otro archivo...\tCtrl+O"),
+		_("&Other file...\tCtrl+O"),
 	)
 
 	file_menu.Append(
 		wx.MenuItem(
 			file_menu,
 			wx.ID_ANY,
-			_("&Cargar registro"),
+			_("&Load log"),
 			subMenu=load_menu,
 		)
 	)
 
 	frame.reload_item = file_menu.Append(
-		wx.MenuItem(file_menu, wx.ID_ANY, _("&Recargar registro\tF5"))
+		wx.MenuItem(file_menu, wx.ID_ANY, _("&Reload log\tF5"))
 	)
 
 	frame.save_as_item = file_menu.Append(
 		wx.ID_ANY,
-		_("&Guardar como...\tCtrl+S"),
+		_("&Save as...\tCtrl+S"),
 	)
 	frame.Bind(wx.EVT_MENU, frame.on_save_as, frame.save_as_item)
 
 	frame.settings_item = file_menu.Append(
-		wx.MenuItem(file_menu, wx.ID_ANY, _("&Ajustes\tCtrl+A"))
+		wx.MenuItem(file_menu, wx.ID_ANY, _("&Settings\tCtrl+A"))
 	)
 
 	file_menu.AppendSeparator()
 
 	frame.exit_item = file_menu.Append(
-		wx.MenuItem(file_menu, wx.ID_EXIT, _("&Salir\tCtrl+Q"))
+		wx.MenuItem(file_menu, wx.ID_EXIT, _("&Exit\tCtrl+Q"))
 	)
 
 	# ----------------------------------------------------------------
-	# Vista
+	# View
 	# ----------------------------------------------------------------
 
 	view_menu = wx.Menu()
 
 	frame.source_view_item = view_menu.AppendRadioItem(
 		wx.ID_ANY,
-		_("&Por origen"),
+		_("&By source"),
 	)
 
 	frame.level_view_item = view_menu.AppendRadioItem(
 		wx.ID_ANY,
-		_("&Por nivel"),
+		_("&By level"),
 	)
 
 	frame.time_view_item = view_menu.AppendRadioItem(
 		wx.ID_ANY,
-		_("&Cronológico"),
+		_("&Chronological"),
 	)
 
 	frame.source_view_item.Check(True)
@@ -86,39 +86,39 @@ def build_menu(frame):
 
 	frame.clear_filters_item = view_menu.Append(
 		wx.ID_ANY,
-		_("&Quitar filtros\tCtrl+Z"),
+		_("&Clear filters\tCtrl+Z"),
 	)
 
 	frame.restore_hidden_item = view_menu.Append(
 		wx.ID_ANY,
-		_("&Restaurar elementos ocultos"),
+		_("&Restore hidden elements"),
 	)
 	frame.restore_hidden_item.Enable(False)
 	frame.Bind(wx.EVT_MENU, frame.on_restore_hidden, frame.restore_hidden_item)
 
 	# ----------------------------------------------------------------
-	# Marcadores
+	# Bookmarks
 	# ----------------------------------------------------------------
 
 	frame.bookmarks_menu = wx.Menu()
 
 	# ----------------------------------------------------------------
-	# Añadir menús
+	# Add menus
 	# ----------------------------------------------------------------
 
 	menubar.Append(
 		file_menu,
-		_("&Archivo"),
+		_("&File"),
 	)
 
 	menubar.Append(
 		view_menu,
-		_("&Vista"),
+		_("&View"),
 	)
 
 	menubar.Append(
 		frame.bookmarks_menu,
-		_("&Marcadores"),
+		_("&Bookmarks"),
 	)
 
 	frame.SetMenuBar(menubar)
@@ -131,25 +131,25 @@ def build_ui(frame):
 	main_sizer = wx.BoxSizer(wx.VERTICAL)
 
 	# ----------------------------------------------------------------
-	# FILTROS
+	# FILTERS
 	# ----------------------------------------------------------------
 
-	filter_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Filtros"))
+	filter_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Filters"))
 
-	# Texto
+	# Text
 	filter_box.Add(
-		wx.StaticText(panel, label=_("Filtro:")),
+		wx.StaticText(panel, label=_("Filter:")),
 		0,
 		wx.ALIGN_CENTER_VERTICAL | wx.RIGHT,
 		6,
 	)
 
 	frame.text_filter = wx.TextCtrl(panel, style=wx.TE_PROCESS_ENTER)
-	frame.text_filter.SetHint(_("Buscar en el registro"))
+	frame.text_filter.SetHint(_("Search in log"))
 	filter_box.Add(frame.text_filter, 1, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 20)
 
-	# Tipos
-	type_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Niveles"))
+	# Levels
+	type_box = wx.StaticBoxSizer(wx.HORIZONTAL, panel, _("Levels"))
 	frame.level_checks = {}
 	display_order = ["INFO", "WARNING", "ERROR", "DEBUGWARNING", "DEBUG", "IO"]
 
@@ -161,7 +161,7 @@ def build_ui(frame):
 
 	filter_box.Add(type_box, 0, wx.ALIGN_CENTER_VERTICAL | wx.RIGHT, 10)
 
-	# Ajustar orden de tabulación para que coincida con el orden visual
+	# Set the tab order to match the visual order.
 	prev_win = frame.text_filter
 	for checkbox in frame.level_checks.values():
 		checkbox.MoveAfterInTabOrder(prev_win)
@@ -170,18 +170,18 @@ def build_ui(frame):
 	main_sizer.Add(filter_box, 0, wx.EXPAND | wx.ALL, 8)
 
 	# ----------------------------------------------------------------
-	# ÁRBOL y DETALLE
+	# TREE and DETAILS
 	# ----------------------------------------------------------------
 
-	# Árbol
-	frame.view_label = wx.StaticText(panel, label=_("Vista Por origen"))
+	# Tree
+	frame.view_label = wx.StaticText(panel, label=_("View by source"))
 	main_sizer.Add(frame.view_label, 0, wx.LEFT | wx.RIGHT, 8)
 
 	frame.tree = wx.TreeCtrl(panel, style=(wx.TR_DEFAULT_STYLE | wx.TR_HIDE_ROOT))
 	main_sizer.Add(frame.tree, proportion=2, flag=wx.EXPAND | wx.LEFT | wx.RIGHT, border=8)
 
-	# Detalle
-	detail_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Detalle"))
+	# Details
+	detail_box = wx.StaticBoxSizer(wx.VERTICAL, panel, _("Detail"))
 	frame.detail = wx.TextCtrl(
 		panel,
 		style=(wx.TE_MULTILINE | wx.TE_READONLY | wx.HSCROLL),
@@ -191,10 +191,10 @@ def build_ui(frame):
 	main_sizer.Add(detail_box, proportion=1, flag=wx.EXPAND | wx.ALL, border=8)
 
 	# ----------------------------------------------------------------
-	# ESTADO
+	# STATUS
 	# ----------------------------------------------------------------
 
-	frame.status = wx.StaticText(panel, label="Sin registro cargado.")
+	frame.status = wx.StaticText(panel, label=_("No log loaded."))
 	main_sizer.Add(frame.status, 0, wx.EXPAND | wx.LEFT | wx.RIGHT | wx.BOTTOM, 8)
 
 	panel.SetSizer(main_sizer)
@@ -267,7 +267,7 @@ def bind_events(frame):
 	)
 
 	# ------------------------------------------------------------
-	# Filtro de texto
+	# Text filter
 	# ------------------------------------------------------------
 
 	frame.text_filter.Bind(
@@ -281,7 +281,7 @@ def bind_events(frame):
 	)
 
 	# ------------------------------------------------------------
-	# Casillas de nivel
+	# Level checkboxes
 	# ------------------------------------------------------------
 
 	for checkbox in frame.level_checks.values():
@@ -292,7 +292,7 @@ def bind_events(frame):
 		)
 
 	# ------------------------------------------------------------
-	# Detalle
+	# Details
 	# ------------------------------------------------------------
 
 	frame.detail.Bind(
@@ -305,7 +305,7 @@ def bind_events(frame):
 	)
 
 	# ------------------------------------------------------------
-	# Árbol
+	# Tree
 	# ------------------------------------------------------------
 
 	frame.tree.Bind(
@@ -328,7 +328,7 @@ def bind_events(frame):
 	)
 
 	# ------------------------------------------------------------
-	# Teclado
+	# Keyboard
 	# ------------------------------------------------------------
 
 	frame.Bind(

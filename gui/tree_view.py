@@ -178,7 +178,7 @@ class LogTreeView:
 
 	def populate_source_tree(self, entries):
 		target_sig, _previous_entry, expanded_sigs = self.save_tree_state()
-		root = self.tree.AddRoot(_("Registro de NVDA"))
+		root = self.tree.AddRoot(_("NVDA Log"))
 
 		nvda_node = None
 		global_plugins_node = None
@@ -246,7 +246,7 @@ class LogTreeView:
 
 	def populate_time_tree(self, entries):
 		target_sig, _previous_entry, expanded_sigs = self.save_tree_state()
-		root = self.tree.AddRoot(_("Registro cronológico"))
+		root = self.tree.AddRoot(_("Chronological log"))
 
 		groups = {}
 		for entry in sorted(entries, key=lambda item: item.sort_time):

@@ -1,5 +1,5 @@
 # ============================================================================
-# MODELO
+# MODEL
 # ============================================================================
 
 class LogModel:
@@ -19,14 +19,14 @@ class LogModel:
 
 	def filtered(self, text_filter, levels, hidden_entries=None):
 		"""
-        Filtra las entradas.
+        Filter the entries.
 
-        IMPORTANTE:
+        IMPORTANT:
 
-        El texto de búsqueda se compara con el encabezado,
-        el mensaje y el traceback de la entrada.
+        The search text is matched against the entry header,
+        message, and traceback.
 
-        La búsqueda no distingue mayúsculas/minúsculas.
+        The search is case-insensitive.
         """
 
 		text_filter = text_filter.strip().casefold()
@@ -38,26 +38,26 @@ class LogModel:
 		for entry in self.entries:
 
 			# ------------------------------------------------------------
-			# Filtro de ocultación
+			# Hidden-entry filter.
 			# ------------------------------------------------------------
 
 			if entry.id in hidden_entries:
 				continue
 
 			# ------------------------------------------------------------
-			# Filtro por nivel
+			# Level filter.
 			# ------------------------------------------------------------
 
 			if entry.level not in levels:
 				continue
 
 			# ------------------------------------------------------------
-			# Filtro por texto
+			# Text filter.
 			# ------------------------------------------------------------
 
 			if text_filter:
 
-				# Combina encabezado, mensaje y traceback para la búsqueda
+				# Combine the header, message, and traceback for searching.
 				traceback_text = "\n".join(entry.traceback).casefold()
 				content = (
 					f"{entry.header_text}\n{entry.message}\n{traceback_text}"

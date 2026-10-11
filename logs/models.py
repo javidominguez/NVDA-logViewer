@@ -4,7 +4,7 @@ import re
 
 
 # ============================================================================
-# REGEX
+# REGULAR EXPRESSIONS
 # ============================================================================
 
 HEADER_RE = re.compile(
@@ -14,7 +14,7 @@ HEADER_RE = re.compile(
 )
 
 
-# Patrón para Tracebacks: File "Ruta", line Numero,
+# Pattern for tracebacks: File "path", line number,
 TRACEBACK_FILE_RE = re.compile(
 	r'\s*File "(?P<path>.+)", line (?P<line>\d+),'
 )
@@ -29,7 +29,7 @@ APP_MODULE_RE = re.compile(
 
 
 # ============================================================================
-# MODELO DE DATOS
+# DATA MODEL
 # ============================================================================
 
 @dataclass
@@ -48,7 +48,7 @@ class LogEntry:
 	@property
 	def source_type(self):
 		"""
-        Tipo de origen:
+        Source type:
 
         NVDA
         Global Plugin
@@ -66,7 +66,7 @@ class LogEntry:
 	@property
 	def addon(self):
 		"""
-        Nombre del complemento o aplicación.
+        Add-on or application name.
         """
 
 		match = GLOBAL_PLUGIN_RE.match(self.source_raw)
@@ -84,9 +84,9 @@ class LogEntry:
 	@property
 	def module(self):
 		"""
-        Módulo principal.
+        Main module.
 
-        Por ejemplo:
+        For example:
 
             braille.BrailleHandler.setDisplayByName
                 -> braille
@@ -123,7 +123,7 @@ class LogEntry:
 	@property
 	def display_emitter(self):
 		"""
-        Nombre del emisor que se muestra en el árbol.
+        Emitter name displayed in the tree.
         """
 
 		if self.source_type == "NVDA":
@@ -134,9 +134,9 @@ class LogEntry:
 	@property
 	def header_text(self):
 		"""
-        Reconstruye la línea de encabezado original de la entrada.
+        Reconstruct the entry's original header line.
 
-        Ejemplo:
+        Example:
 
         INFO - core.main (17:42:04.341) - MainThread (21420):
         """
@@ -152,7 +152,7 @@ class LogEntry:
 	@property
 	def sort_time(self):
 		"""
-        Hora utilizada para ordenar la vista cronológica.
+        Time used to sort the chronological view.
         """
 
 		try:

@@ -84,7 +84,7 @@ class BookmarkController:
 			frame._signatures_equal(bookmark['signature'], signature)
 			for bookmark in frame.bookmarks
 		):
-			frame.speak(_("Ya existe ese marcador"))
+			frame.speak(_("That bookmark already exists"))
 			return
 
 		bookmark_id = wx.NewIdRef()
@@ -97,7 +97,7 @@ class BookmarkController:
 			'label': label,
 		})
 		frame.save_bookmarks()
-		frame.speak(_("Marcador añadido"))
+		frame.speak(_("Bookmark added"))
 
 	def on_bookmark_selected(self, signature):
 		frame = self.frame
@@ -143,13 +143,13 @@ class BookmarkController:
 
 			if filters_active:
 				msg = _(
-					"No se puede acceder al marcador con filtros o elementos ocultos. "
-					"¿Quieres quitar todos los filtros?"
+					"Cannot access the bookmark with filters or hidden elements. "
+					"Do you want to remove all filters?"
 				)
 				dlg = wx.MessageDialog(
 					frame,
 					msg,
-					_("Marcador no encontrado"),
+					_("Bookmark not found"),
 					wx.YES_NO | wx.ICON_QUESTION,
 				)
 				if dlg.ShowModal() == wx.ID_YES:
@@ -161,7 +161,7 @@ class BookmarkController:
 						frame.tree.SetFocus()
 						return
 
-			frame.speak(_("No se pudo encontrar el marcador en la vista actual"))
+			frame.speak(_("Could not find the bookmark in the current view"))
 			restore_initial_state()
 
 	def on_hide_node(self, node):
@@ -181,7 +181,7 @@ class BookmarkController:
 			frame.hidden_entries = old_hidden_entries
 			frame.refresh()
 		else:
-			frame.speak(_("Entradas ocultadas"))
+			frame.speak(_("Entries hidden"))
 
 	def on_remove_bookmark(self, signature):
 		frame = self.frame
@@ -197,7 +197,7 @@ class BookmarkController:
 			frame.bookmarks.remove(bookmark)
 			frame.save_bookmarks()
 
-			frame.speak(_("Marcador eliminado"))
+			frame.speak(_("Bookmark deleted"))
 
 	def on_toggle_bookmark(self, node):
 		frame = self.frame
@@ -233,26 +233,25 @@ class BookmarkController:
 				if frame._signatures_equal(signature, bookmark['signature'])
 			)
 			actual_signature = actual_bookmark['signature']
-			bookmark_item = menu.Append(wx.ID_ANY, _("Quitar de marcadores"))
+			bookmark_item = menu.Append(wx.ID_ANY, _("Remove from bookmarks"))
 			frame.Bind(
 				wx.EVT_MENU,
 				lambda e: self.on_remove_bookmark(actual_signature),
 				bookmark_item,
 			)
 		else:
-			bookmark_item = menu.Append(wx.ID_ANY, _("Añadir a marcadores"))
+			bookmark_item = menu.Append(wx.ID_ANY, _("Add to bookmarks"))
 			frame.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
 
 		if frame.current_view in ("source", "level", "time"):
-			export_item = menu.Append(wx.ID_ANY, _("Exportar"))
+			export_item = menu.Append(wx.ID_ANY, _("Export"))
 			frame.Bind(wx.EVT_MENU, lambda e: frame.on_export(item), export_item)
 
-		clear_filters_item = menu.Append(wx.ID_ANY, _("Quitar filtros"))
+		clear_filters_item = menu.Append(wx.ID_ANY, _("Clear filters"))
 		frame.Bind(wx.EVT_MENU, frame.on_clear_filters, clear_filters_item)
 
-		hide_item = menu.Append(wx.ID_ANY, _("Ocultar"))
+		hide_item = menu.Append(wx.ID_ANY, _("Hide"))
 		frame.Bind(wx.EVT_MENU, lambda e: self.on_hide_node(item), hide_item)
 
 		frame.PopupMenu(menu)
 		menu.Destroy()
-

@@ -7,10 +7,10 @@ from .models import HEADER_RE, LogEntry
 
 def parse_log(text):
 	"""
-    Analiza un registro de NVDA.
+    Parse an NVDA log.
 
-    Cada línea que coincide con HEADER_RE comienza una nueva entrada.
-    Las líneas siguientes pertenecen a esa entrada.
+    Each line matching HEADER_RE starts a new entry.
+    Subsequent lines belong to that entry.
     """
 
 	entries = []
@@ -24,7 +24,7 @@ def parse_log(text):
 		match = HEADER_RE.match(line)
 
 		# ----------------------------------------------------------------
-		# Nuevo encabezado
+		# New header.
 		# ----------------------------------------------------------------
 
 		if match:
@@ -47,14 +47,14 @@ def parse_log(text):
 			continue
 
 		# ----------------------------------------------------------------
-		# Todavía no hemos encontrado una entrada
+		# No entry has been found yet.
 		# ----------------------------------------------------------------
 
 		if current is None:
 			continue
 
 		# ----------------------------------------------------------------
-		# Traceback
+		# Traceback.
 		# ----------------------------------------------------------------
 
 		if line.strip() == "Traceback (most recent call last):":
@@ -67,7 +67,7 @@ def parse_log(text):
 			current.traceback.append(line)
 
 		# ----------------------------------------------------------------
-		# Mensaje
+		# Message.
 		# ----------------------------------------------------------------
 
 		elif current.message:
@@ -78,7 +78,7 @@ def parse_log(text):
 
 			current.message = line
 
-	# Añadir última entrada
+	# Add the last entry.
 	if current is not None:
 		entries.append(current)
 

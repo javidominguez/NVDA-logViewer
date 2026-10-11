@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: LogViewer 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-04 00:53+0200\n"
-"PO-Revision-Date: 2026-09-04 01:00+0200\n"
+"POT-Creation-Date: 2026-09-02 01:15+0200\n"
+"PO-Revision-Date: 2026-08-30 11:50+0200\n"
 "Last-Translator: Javi Dominguez\n"
 "Language-Team: English\n"
 "Language: en\n"
@@ -15,414 +15,352 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: logViewer.py:341
+#: logViewer.py:329
 msgid "Ajustes"
 msgstr "Settings"
 
-#: logViewer.py:350
+#: logViewer.py:338
 msgid "Editor de código:"
 msgstr "Code editor:"
 
-#: logViewer.py:354 logViewer.py:365 logViewer.py:376
+#: logViewer.py:342 logViewer.py:353 logViewer.py:364
 msgid "Examinar"
 msgstr "Browse"
 
-#: logViewer.py:361
+#: logViewer.py:349
 msgid "Código fuente de NVDA:"
 msgstr "NVDA source code:"
 
-#: logViewer.py:372
+#: logViewer.py:360
 msgid "Carpeta de marcadores:"
 msgstr "Bookmarks folder:"
 
-#: logViewer.py:383
+#: logViewer.py:371
 msgid "Limpiar marcadores no usados en:"
 msgstr "Clean unused bookmarks in:"
 
-#: logViewer.py:386
+#: logViewer.py:374
 msgid "Días"
 msgstr "Days"
 
-#: logViewer.py:391
+#: logViewer.py:379
 msgid "Aceptar"
 msgstr "OK"
 
-#: logViewer.py:392
+#: logViewer.py:380
 msgid "Cancelar"
 msgstr "Cancel"
 
-#: logViewer.py:404
+#: logViewer.py:392
 msgid "Seleccionar editor"
 msgstr "Select editor"
 
-#: logViewer.py:404
+#: logViewer.py:392
 msgid "Ejecutables (*.exe)|*.exe"
 msgstr "Executables (*.exe)|*.exe"
 
-#: logViewer.py:409
+#: logViewer.py:397
 msgid "Seleccionar carpeta de NVDA"
 msgstr "Select NVDA folder"
 
-#: logViewer.py:414
+#: logViewer.py:402
 msgid "Seleccionar carpeta de marcadores"
 msgstr "Select bookmarks folder"
 
-#: logViewer.py:448
+#: logViewer.py:436
 msgid "Visor de registros de NVDA"
 msgstr "NVDA Log Viewer"
 
-#: logViewer.py:498
+#: logViewer.py:482
 msgid "Cargando registro"
 msgstr "Loading log"
 
-#: logViewer.py:533
+#: logViewer.py:517
 msgid "Marcador sin nombre"
 msgstr "Unnamed bookmark"
 
-#: logViewer.py:608
+#: logViewer.py:592
 msgid "&Otro archivo...\tCtrl+O"
 msgstr "&Other file...\tCtrl+O"
 
-#: logViewer.py:611
+#: logViewer.py:595
 msgid "&Cargar registro"
 msgstr "&Load log"
 
-#: logViewer.py:613
+#: logViewer.py:597
 msgid "&Recargar registro\tF5"
 msgstr "&Reload log\tF5"
 
-#: logViewer.py:617
-msgid "&Guardar como...\tCtrl+S"
-msgstr "&Save as...\tCtrl+S"
+#: logViewer.py:599
+msgid "&Ajustes\tCtrl+S"
+msgstr "&Settings\tCtrl+S"
 
-#: logViewer.py:621
-msgid "&Ajustes\tCtrl+A"
-msgstr "&Settings\tCtrl+A"
-
-#: logViewer.py:625
+#: logViewer.py:603
 msgid "&Salir\tCtrl+Q"
 msgstr "&Exit\tCtrl+Q"
 
-#: logViewer.py:635
+#: logViewer.py:613
 msgid "&Por origen"
 msgstr "&By source"
 
-#: logViewer.py:640
+#: logViewer.py:618
 msgid "&Por nivel"
 msgstr "&By level"
 
-#: logViewer.py:645
+#: logViewer.py:623
 msgid "&Cronológico"
 msgstr "&Chronological"
 
-#: logViewer.py:654
+#: logViewer.py:632
 msgid "&Quitar filtros\tCtrl+Z"
 msgstr "&Clear filters\tCtrl+Z"
 
-#: logViewer.py:659
-msgid "&Restaurar elementos ocultos"
-msgstr "&Restore hidden elements"
-
-#: logViewer.py:676
+#: logViewer.py:647
 msgid "&Archivo"
 msgstr "&File"
 
-#: logViewer.py:681
+#: logViewer.py:652
 msgid "&Vista"
 msgstr "&View"
 
-#: logViewer.py:686
+#: logViewer.py:657
 msgid "&Marcadores"
 msgstr "&Bookmarks"
 
-#: logViewer.py:705
+#: logViewer.py:676
 msgid "Filtros"
 msgstr "Filters"
 
-#: logViewer.py:708
+#: logViewer.py:679
 msgid "Filtro:"
 msgstr "Filter:"
 
-#: logViewer.py:711
+#: logViewer.py:682
 msgid "Buscar en el registro"
 msgstr "Search in log"
 
-#: logViewer.py:715
+#: logViewer.py:686
 msgid "Niveles"
 msgstr "Levels"
 
-#: logViewer.py:743
+#: logViewer.py:707
 msgid "Vista Por origen"
 msgstr "View By source"
 
-#: logViewer.py:750
+#: logViewer.py:714
 msgid "Detalle"
 msgstr "Detail"
 
-#: logViewer.py:908
+#: logViewer.py:871
 msgid "Filtros eliminados"
 msgstr "Filters cleared"
 
-#: logViewer.py:969
+#: logViewer.py:931
 msgid "activado"
 msgstr "enabled"
 
-#: logViewer.py:969
+#: logViewer.py:931
 msgid "desactivado"
 msgstr "disabled"
 
-#: logViewer.py:970
+#: logViewer.py:932
 msgid "{}, {}"
 msgstr "{}, {}"
 
-#: logViewer.py:994
+#: logViewer.py:956
 msgid "Vista por origen"
 msgstr "View by source"
 
-#: logViewer.py:994
+#: logViewer.py:956
 msgid "Vista por niveles"
 msgstr "View by levels"
 
-#: logViewer.py:994
+#: logViewer.py:956
 msgid "Vista cronológica"
 msgstr "Chronological view"
 
-#: logViewer.py:1008
-msgid "No se pudo encontrar el archivo de ayuda"
-msgstr "Could not find the help file"
-
-#: logViewer.py:1036
+#: logViewer.py:970
 msgid "Por origen"
 msgstr "By source"
 
-#: logViewer.py:1036
+#: logViewer.py:970
 msgid "Por nivel"
 msgstr "By level"
 
-#: logViewer.py:1036
+#: logViewer.py:970
 msgid "Cronológica"
 msgstr "Chronological"
 
-#: logViewer.py:1037
+#: logViewer.py:971
 msgid "Vista {}"
 msgstr "View {}"
 
-#: logViewer.py:1133
+#: logViewer.py:1067
 msgid "Registro recargado"
 msgstr "Log reloaded"
 
-#: logViewer.py:1133
+#: logViewer.py:1067
 msgid "Registro cargado"
 msgstr "Log loaded"
 
-#: logViewer.py:1134
+#: logViewer.py:1068
 msgid "{}, {} entradas"
 msgstr "{}, {} entries"
 
-#: logViewer.py:1137
+#: logViewer.py:1071
 msgid "Visor de registros de NVDA — {}"
 msgstr "NVDA Log Viewer — {}"
 
-#: logViewer.py:1224
-msgid "Elementos ocultos restaurados"
-msgstr "Hidden elements restored"
-
-#: logViewer.py:1247
-msgid "No hay entradas que coincidan con el filtro"
-msgstr "No entries match the filter"
-
-#: logViewer.py:1247 logViewer.py:1978
-msgid "Atención"
-msgstr "Warning"
-
-#: logViewer.py:1272
-msgid "&Restaurar {} elementos ocultos"
-msgstr "&Restore {} hidden elements"
-
-#: logViewer.py:1302
+#: logViewer.py:1132
 msgid "{} | {} entradas"
 msgstr "{} | {} entries"
 
-#: logViewer.py:1308
+#: logViewer.py:1138
 msgid " | Última entrada: {}"
 msgstr " | Last entry: {}"
 
-#: logViewer.py:1476
+#: logViewer.py:1192
 msgid "Registro de NVDA"
 msgstr "NVDA Log"
 
-#: logViewer.py:1500
+#: logViewer.py:1217
 msgid "Developer info for navigator object"
 msgstr "Developer info for navigator object"
 
-#: logViewer.py:1538
+#: logViewer.py:1295
 msgid "Global Commands"
 msgstr "Global Commands"
 
-#: logViewer.py:1546
+#: logViewer.py:1328
 msgid "Global Plugins"
 msgstr "Global Plugins"
 
-#: logViewer.py:1550
+#: logViewer.py:1346
 msgid "App Modules"
 msgstr "App Modules"
 
-#: logViewer.py:1562
+#: logViewer.py:1377
 msgid "{} ({})"
 msgstr "{} ({})"
 
-#: logViewer.py:1587
+#: logViewer.py:1404
 msgid "Registro cronológico"
 msgstr "Chronological log"
 
-#: logViewer.py:1606
+#: logViewer.py:1423
 msgid "{}:{} ({})"
 msgstr "{}:{} ({})"
 
-#: logViewer.py:1682
+#: logViewer.py:1473
 msgid "Quitar de marcadores"
 msgstr "Remove from bookmarks"
 
-#: logViewer.py:1685
+#: logViewer.py:1476
 msgid "Añadir a marcadores"
 msgstr "Add to bookmarks"
 
-#: logViewer.py:1690
+#: logViewer.py:1481
 msgid "Exportar"
 msgstr "Export"
 
-#: logViewer.py:1693
+#: logViewer.py:1484
 msgid "Quitar filtros"
 msgstr "Clear filters"
 
-#: logViewer.py:1696
-msgid "Ocultar"
-msgstr "Hide"
-
-#: logViewer.py:1719
-msgid "Entradas ocultadas"
-msgstr "Entries hidden"
-
-#: logViewer.py:1799
+#: logViewer.py:1567
 msgid "Ya existe ese marcador"
 msgstr "That bookmark already exists"
 
-#: logViewer.py:1809
+#: logViewer.py:1576
 msgid "Marcador añadido"
 msgstr "Bookmark added"
 
-#: logViewer.py:1827
+#: logViewer.py:1584
 msgid "Marcador eliminado"
 msgstr "Bookmark deleted"
 
-#: logViewer.py:1932
-msgid "No se puede acceder al marcador con filtros o elementos ocultos. ¿Quieres quitar todos los filtros?"
-msgstr "Cannot access the bookmark with filters or hidden elements. Do you want to remove all filters?"
+#: logViewer.py:1658
+msgid ""
+"No se puede acceder al marcador con este filtro aplicado. ¿Quieres quitar el "
+"filtro?"
+msgstr "Cannot access the bookmark with this filter applied. Do you want to remove the filter?"
 
-#: logViewer.py:1933
+#: logViewer.py:1659
 msgid "Marcador no encontrado"
 msgstr "Bookmark not found"
 
-#: logViewer.py:1945
+#: logViewer.py:1671
 msgid "No se pudo encontrar el marcador en la vista actual"
 msgstr "Could not find the bookmark in the current view"
 
-#: logViewer.py:1978
-msgid "No hay entradas para guardar con los filtros actuales."
-msgstr "No entries to save with current filters."
-
-#: logViewer.py:1983 logViewer.py:2017
+#: logViewer.py:1702
 msgid "Guardar registro como"
 msgstr "Save log as"
 
-#: logViewer.py:1984
-msgid "Archivo de registro (*.log;*.txt)|*.log;*.txt"
-msgstr "Log file (*.log;*.txt)|*.log;*.txt"
-
-#: logViewer.py:2003
-msgid "Registro guardado"
-msgstr "Log saved"
-
-#: logViewer.py:2018
+#: logViewer.py:1703
 msgid "Archivo de texto (*.txt;*.log)|*.txt;*.log"
-msgstr "Text file (*.txt;*.log)|*.txt;*.log"
+msgstr "Text files (*.txt;*.log)|*.txt;*.log"
 
-#: logViewer.py:2088
+#: logViewer.py:1773
 msgid "No hay más entradas"
 msgstr "No more entries"
 
-#: logViewer.py:2130
+#: logViewer.py:1815
 msgid "Primera entrada"
 msgstr "First entry"
 
-#: logViewer.py:2182
+#: logViewer.py:1867
 msgid "No se pudo encontrar el editor configurado."
 msgstr "Could not find the configured editor."
 
-#: logViewer.py:2183
+#: logViewer.py:1868
 msgid "Error"
 msgstr "Error"
 
-#: logViewer.py:2208
+#: logViewer.py:1893
 msgid "Nivel: {}"
 msgstr "Level: {}"
 
-#: logViewer.py:2209
+#: logViewer.py:1894
 msgid "Hora: {}"
 msgstr "Time: {}"
 
-#: logViewer.py:2210
+#: logViewer.py:1895
 msgid "Hilo: {}"
 msgstr "Thread: {}"
 
-#: logViewer.py:2211
+#: logViewer.py:1896
 msgid "PID: {}"
 msgstr "PID: {}"
 
-#: logViewer.py:2213
+#: logViewer.py:1898
 msgid "Origen: {}"
 msgstr "Source: {}"
 
-#: logViewer.py:2214
+#: logViewer.py:1899
 msgid "Emisor: {}"
 msgstr "Emitter: {}"
 
-#: logViewer.py:2215
+#: logViewer.py:1900
 msgid "Módulo: {}"
 msgstr "Module: {}"
 
-#: logViewer.py:2216
+#: logViewer.py:1901
 msgid "Fuente: {}"
 msgstr "Source: {}"
 
-#: logViewer.py:2218
+#: logViewer.py:1903
 msgid "Encabezado:"
 msgstr "Header:"
 
-#: logViewer.py:2221
+#: logViewer.py:1906
 msgid "Mensaje:"
 msgstr "Message:"
 
-#: logViewer.py:2222
+#: logViewer.py:1907
 msgid "(sin mensaje)"
 msgstr "(no message)"
 
-#: logViewer.py:2228
+#: logViewer.py:1913
 msgid "Traceback:"
 msgstr "Traceback:"
-
-#: gui/log_detail_view.py
-msgid "Seleccionar todo"
-msgstr "Select all"
-
-#: gui/log_detail_view.py
-msgid "Copiar"
-msgstr "Copy"
-
-#: gui/log_detail_view.py
-msgid "Abrir {} — línea {}"
-msgstr "Open {} — line {}"
-
-#: gui/log_detail_view.py
-msgid "No se pudo encontrar el archivo referenciado: {}"
-msgstr "Could not find referenced file: {}"

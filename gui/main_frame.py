@@ -26,7 +26,7 @@ from .tree_view import LogTreeView
 
 
 # ============================================================================
-# VENTANA PRINCIPAL
+# MAIN WINDOW
 # ============================================================================
 
 class MainFrame(wx.Frame):
@@ -38,14 +38,14 @@ class MainFrame(wx.Frame):
 
 		super().__init__(
 			None,
-			title=_("Visor de registros de NVDA"),
+			title=_("NVDA Log Viewer"),
 			size=(1250, 800),
 		)
 
 		self.model = LogModel()
 		self.settings = self.load_settings()
 
-		# Configuración de marcadores
+		# Bookmark configuration.
 		bookmarks_folder_path = self.settings.get('bookmarks_folder', 'bookmarks')
 		self.bookmarks_folder = Path(bookmarks_folder_path)
 		self.bookmark_store = BookmarkStore(self.bookmarks_folder)
@@ -54,14 +54,14 @@ class MainFrame(wx.Frame):
 
 		self.current_log_hash = None
 
-		# Flag para saber si los filtros han cambiado
+		# Flag indicating whether the filters have changed.
 		self.filters_dirty = False
 		self.hidden_entries = set()
 
-		# Vista actual:
+		# Current view:
 		#
-		# source = Por origen
-		# time   = Cronológico
+		# source = By source
+		# time   = Chronological
 		self.current_view = "source"
 
 		build_menu(self)
@@ -92,28 +92,28 @@ class MainFrame(wx.Frame):
 		self.Centre()
 
 		# ----------------------------------------------------------------
-		# Ruta del archivo cargado actualmente
+		# Path of the currently loaded file.
 		# ----------------------------------------------------------------
 
 		self.current_file_path = None
 
 		# ----------------------------------------------------------------
-		# Cargar automáticamente nvda.log en TEMP si existe
+		# Automatically load nvda.log from TEMP if it exists.
 		# ----------------------------------------------------------------
 
 		temp_log = Path.home() / "AppData" / "Local" / "Temp" / "nvda.log"
 
 		if temp_log.exists():
 
-			self.speak(_("Cargando registro"))
+			self.speak(_("Loading log"))
 			self.load_file(temp_log)
 
 	def get_log_hash(self, path):
 		return self.bookmark_store.get_log_hash(path)
 
 	def load_bookmarks(self, embedded_bookmarks=()):
-		"""Carga marcadores para el log actual."""
-		# Limpiar menú de marcadores
+		"""Load bookmarks for the current log."""
+		# Clear the bookmarks menu.
 		while self.bookmarks_menu.GetMenuItemCount() > 0:
 			item = self.bookmarks_menu.FindItemByPosition(0)
 			self.bookmarks_menu.Remove(item)
@@ -135,10 +135,10 @@ class MainFrame(wx.Frame):
 				continue
 			data.append(embedded_bookmark)
 
-		# Reconstruir el menú
+		# Rebuild the menu.
 		for entry in data:
 			signature = entry['signature']
-			label = entry.get('label', _("Marcador sin nombre"))
+			label = entry.get('label', _("Unnamed bookmark"))
 
 			bookmark_id = wx.NewIdRef()
 			bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
@@ -158,7 +158,7 @@ class MainFrame(wx.Frame):
 			self.save_bookmarks()
 
 	def save_bookmarks(self):
-		"""Guarda los marcadores actuales en un archivo."""
+		"""Save the current bookmarks to a file."""
 		if not self.current_log_hash:
 			return
 
@@ -189,7 +189,7 @@ class MainFrame(wx.Frame):
 
 		self.refresh()
 		self.filters_dirty = False
-		self.speak(_("Filtros eliminados"))
+		self.speak(_("Filters cleared"))
 
 	def on_tree_focus(self, event):
 
@@ -209,34 +209,34 @@ class MainFrame(wx.Frame):
 		key_code = event.GetKeyCode()
 		control_down = event.ControlDown()
 
-		# F1: Abrir ayuda
+		# F1: Open help.
 		if key_code == wx.WXK_F1:
 			self.on_help(event)
 			return
 
-		# Ctrl+O: Abrir registro
+		# Ctrl+O: Open a log.
 		if control_down and key_code == ord("O"):
 			self.on_open(event)
 			return
 
-		# Ctrl+F: Foco en filtro
+		# Ctrl+F: Focus the filter.
 		elif control_down and key_code == ord("F"):
 			self.text_filter.SetFocus()
 			return
 
-		# Ctrl+T: Foco en árbol
+		# Ctrl+T: Focus the tree.
 		elif control_down and key_code == ord("T"):
 			self.tree.SetFocus()
 			return
 
-		# Ctrl+M: Alternar marcador
+		# Ctrl+M: Toggle the bookmark.
 		elif control_down and key_code == ord("M"):
 			item = self.tree.GetSelection()
 			if item.IsOk():
 				self.on_toggle_bookmark(item)
 			return
 
-		# Ctrl+1..6: Alternar checkboxes de filtro
+		# Ctrl+1..6: Toggle the filter checkboxes.
 		elif control_down and ord("1") <= key_code <= ord("6") and self.tree.HasFocus():
 
 			index = key_code - ord("1")
@@ -250,14 +250,14 @@ class MainFrame(wx.Frame):
 					new_value = not checkbox.GetValue()
 					checkbox.SetValue(new_value)
 
-					state = _("activado") if new_value else _("desactivado")
+					state = _("enabled") if new_value else _("disabled")
 					self.speak(_("{}, {}").format(level, state))
 
 					self.mark_dirty()
 					self.refresh()
 			return
 
-		# F6: Cambiar vista; Shift+F6 recorre las vistas en sentido inverso.
+		# F6: Change view; Shift+F6 cycles through views in reverse.
 		elif key_code == wx.WXK_F6:
 			view_order = ("source", "level", "time")
 			current_index = view_order.index(self.current_view)
@@ -268,15 +268,15 @@ class MainFrame(wx.Frame):
 
 			self.change_view(next_view)
 
-			# Actualizar radio buttons del menú
+			# Update the menu radio buttons.
 			self.source_view_item.Check(self.current_view == "source")
 			self.level_view_item.Check(self.current_view == "level")
 			self.time_view_item.Check(self.current_view == "time")
 
 			view_names = {
-				"source": _("Vista por origen"),
-				"level": _("Vista por niveles"),
-				"time": _("Vista cronológica"),
+				"source": _("View by source"),
+				"level": _("View by levels"),
+				"time": _("Chronological view"),
 			}
 			self.speak(view_names[next_view])
 			return
@@ -290,7 +290,7 @@ class MainFrame(wx.Frame):
 			readme_path = Path("README.md")
 
 		if not readme_path.exists():
-			self.speak(_("No se pudo encontrar el archivo de ayuda"))
+			self.speak(_("Could not find the help file"))
 			return
 
 		with readme_path.open("r", encoding="utf-8") as f:
@@ -313,7 +313,7 @@ class MainFrame(wx.Frame):
 
 
 	# ========================================================================
-	# CAMBIO DE VISTA
+	# CHANGE VIEW
 	# ========================================================================
 
 	def change_view(self, view):
@@ -321,26 +321,27 @@ class MainFrame(wx.Frame):
 		self.current_view = view
 
 		view_names = {
-			"source": _("Por origen"),
-			"level": _("Por nivel"),
-			"time": _("Cronológica"),
+			"source": _("By source"),
+			"level": _("By level"),
+			"time": _("Chronological"),
 		}
-		self.view_label.SetLabel(_("Vista {}").format(view_names[view]))
+		self.view_label.SetLabel(_("View {}").format(view_names[view]))
 
 		self.refresh()
 
 	# ========================================================================
-	# ARCHIVOS
+	# FILES
 	# ========================================================================
 
 	def on_open(self, event):
 
 		dialog = wx.FileDialog(
 			self,
-			"Abrir registro de NVDA",
+			_("Open NVDA log"),
 			wildcard=(
-				"Registros (*.txt;*.log)|*.txt;*.log|"
-				"Todos los archivos (*.*)|*.*"
+				_("Log files (*.txt;*.log)|*.txt;*.log")
+				+ "|"
+				+ _("All files (*.*)|*.*")
 			),
 			style=(
 				wx.FD_OPEN
@@ -398,8 +399,8 @@ class MainFrame(wx.Frame):
 		except OSError as error:
 
 			wx.MessageBox(
-				f"No se pudo abrir el archivo:\n\n{error}",
-				"Error",
+				_("Could not open file:\n\n{}").format(error),
+				_("Error"),
 				wx.OK | wx.ICON_ERROR,
 			)
 
@@ -419,22 +420,22 @@ class MainFrame(wx.Frame):
 
 		self.refresh()
 
-		message = _("Registro recargado") if is_reload else _("Registro cargado")
+		message = _("Log reloaded") if is_reload else _("Log loaded")
 		wx.CallLater(
 			100,
 			lambda: self.speak(
-				_("{}, {} entradas").format(message, len(self.model.entries))
+				_("{}, {} entries").format(message, len(self.model.entries))
 			),
 		)
 
 		self.SetTitle(
-			_("Visor de registros de NVDA — {}").format(path.name)
+			_("NVDA Log Viewer — {}").format(path.name)
 		)
 
 		self.tree.SetFocus()
 
 	# ========================================================================
-	# FILTROS
+	# FILTERS
 	# ========================================================================
 
 	def selected_levels(self):
@@ -451,13 +452,13 @@ class MainFrame(wx.Frame):
 
 
 	# ========================================================================
-	# ACTUALIZAR
+	# REFRESH
 	# ========================================================================
 
 	def on_restore_hidden(self, event):
 		self.hidden_entries.clear()
 		self.refresh()
-		self.speak(_("Elementos ocultos restaurados"))
+		self.speak(_("Hidden elements restored"))
 
 	def refresh(self):
 		if getattr(self, "is_refreshing", False):
@@ -478,8 +479,8 @@ class MainFrame(wx.Frame):
 				if not getattr(self, "showing_no_entries_dialog", False):
 					self.showing_no_entries_dialog = True
 					wx.MessageBox(
-						_("No hay entradas que coincidan con el filtro"),
-						_("Atención"),
+						_("No entries match the filter"),
+						_("Warning"),
 						wx.OK | wx.ICON_WARNING,
 					)
 					self.showing_no_entries_dialog = False
@@ -502,7 +503,7 @@ class MainFrame(wx.Frame):
 
 			self.restore_hidden_item.Enable(len(self.hidden_entries) > 0)
 			self.restore_hidden_item.SetItemLabel(
-				_("&Restaurar {} elementos ocultos").format(len(self.hidden_entries))
+				_("&Restore {} hidden elements").format(len(self.hidden_entries))
 			)
 
 			if self.current_view == "source":
@@ -515,21 +516,21 @@ class MainFrame(wx.Frame):
 			file_name = (
 				self.current_file_path.name
 				if self.current_file_path and self.current_file_path.exists()
-				else "Sin archivo"
+				else _("No file")
 			)
 
-			status_text = _("{} | {} entradas").format(file_name, len(entries))
+			status_text = _("{} | {} entries").format(file_name, len(entries))
 
 			if entries:
 				last_entry = entries[-1]
-				status_text += _(" | Última entrada: {}").format(last_entry.time_text)
+				status_text += _(" | Last entry: {}").format(last_entry.time_text)
 
 			self.status.SetLabel(status_text)
 		finally:
 			self.is_refreshing = False
 
 	# ========================================================================
-	# VISTA POR NIVEL
+	# LEVEL VIEW
 	# ========================================================================
 
 
@@ -541,19 +542,19 @@ class MainFrame(wx.Frame):
 
 
 	# ========================================================================
-	# VISTA POR ORIGEN
+	# SOURCE VIEW
 	# ========================================================================
 
 
 
 	# ========================================================================
-	# VISTA CRONOLÓGICA
+	# CHRONOLOGICAL VIEW
 	# ========================================================================
 
 
 
 	# ========================================================================
-	# TEXTO DE LAS ENTRADAS
+	# ENTRY TEXT
 	# ========================================================================
 
 	@staticmethod
@@ -646,16 +647,16 @@ class MainFrame(wx.Frame):
 
 		if not entries:
 			wx.MessageBox(
-				_("No hay entradas para guardar con los filtros actuales."),
-				_("Atención"),
+				_("No entries to save with current filters."),
+				_("Warning"),
 				wx.OK | wx.ICON_WARNING,
 			)
 			return
 
 		dialog = wx.FileDialog(
 			self,
-			_("Guardar registro como"),
-			wildcard=_("Archivo de registro (*.log;*.txt)|*.log;*.txt"),
+			_("Save log as"),
+			wildcard=_("Log file (*.log;*.txt)|*.log;*.txt"),
 			style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
 		)
 
@@ -665,7 +666,7 @@ class MainFrame(wx.Frame):
 
 			path = Path(dialog.GetPath())
 			self.write_entries(path, entries)
-			self.speak(_("Registro guardado"))
+			self.speak(_("Log saved"))
 
 		finally:
 			dialog.Destroy()
@@ -678,8 +679,8 @@ class MainFrame(wx.Frame):
 
 		dialog = wx.FileDialog(
 			self,
-			_("Guardar registro como"),
-			wildcard=_("Archivo de texto (*.txt;*.log)|*.txt;*.log"),
+			_("Save log as"),
+			wildcard=_("Text file (*.txt;*.log)|*.txt;*.log"),
 			style=wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT,
 		)
 
@@ -706,6 +707,3 @@ class MainFrame(wx.Frame):
 
 	def on_tree_selection(self, event):
 		self.detail_view.on_tree_selection(event)
-
-
-

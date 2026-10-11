@@ -33,10 +33,10 @@ class LogDetailView:
 		menu = wx.Menu()
 		self.context_actions.clear()
 
-		select_all_item = menu.Append(wx.ID_ANY, _("Seleccionar todo"))
+		select_all_item = menu.Append(wx.ID_ANY, _("Select all"))
 		self.context_actions[select_all_item.GetId()] = "select_all"
 
-		copy_item = menu.Append(wx.ID_ANY, _("Copiar"))
+		copy_item = menu.Append(wx.ID_ANY, _("Copy"))
 		selection_start, selection_end = self.detail.GetSelection()
 		copy_item.Enable(selection_start != selection_end)
 		self.context_actions[copy_item.GetId()] = "copy"
@@ -58,7 +58,7 @@ class LogDetailView:
 			for path, line_number in references:
 				item = menu.Append(
 					wx.ID_ANY,
-					_("Abrir {} — línea {}").format(path, line_number),
+					_("Open {} — line {}").format(path, line_number),
 				)
 				self.context_actions[item.GetId()] = ("open_reference", path, line_number)
 
@@ -91,7 +91,7 @@ class LogDetailView:
 		)
 		if not location:
 			wx.MessageBox(
-				_("No se pudo encontrar el archivo referenciado: {}").format(path),
+				_("Could not find referenced file: {}").format(path),
 				_("Error"),
 				wx.OK | wx.ICON_ERROR,
 			)
@@ -104,7 +104,7 @@ class LogDetailView:
 
 	def show_editor_error(self):
 		wx.MessageBox(
-			_("No se pudo encontrar el editor configurado."),
+			_("Could not find the configured editor."),
 			_("Error"),
 			wx.OK | wx.ICON_ERROR,
 		)
@@ -132,7 +132,7 @@ class LogDetailView:
 						self.detail.SetInsertionPoint(target)
 						self.detail.ShowPosition(target)
 						return
-				self.speak(_("No hay más entradas"))
+				self.speak(_("No more entries"))
 			else:
 				found_position = -1
 				for separator_position in reversed(separators):
@@ -159,7 +159,7 @@ class LogDetailView:
 				self.detail.SetInsertionPoint(target)
 				self.detail.ShowPosition(target)
 				if target == 0:
-					self.speak(_("Primera entrada"))
+					self.speak(_("First entry"))
 
 			event.Skip()
 			return
@@ -202,21 +202,21 @@ class LogDetailView:
 		if len(entries) == 1:
 			entry = entries[0]
 			lines = [
-				_("Nivel: {}").format(entry.level),
-				_("Hora: {}").format(entry.time_text),
-				_("Hilo: {}").format(entry.thread),
+				_("Level: {}").format(entry.level),
+				_("Time: {}").format(entry.time_text),
+				_("Thread: {}").format(entry.thread),
 				_("PID: {}").format(entry.pid),
 				"",
-				_("Origen: {}").format(entry.source_type),
-				_("Emisor: {}").format(entry.display_emitter),
-				_("Módulo: {}").format(entry.module),
-				_("Fuente: {}").format(entry.source_raw),
+				_("Origin: {}").format(entry.source_type),
+				_("Emitter: {}").format(entry.display_emitter),
+				_("Module: {}").format(entry.module),
+				_("Source: {}").format(entry.source_raw),
 				"",
-				_("Encabezado:"),
+				_("Header:"),
 				entry.header_text,
 				"",
-				_("Mensaje:"),
-				entry.message or _("(sin mensaje)"),
+				_("Message:"),
+				entry.message or _("(no message)"),
 			]
 
 			if entry.traceback:
