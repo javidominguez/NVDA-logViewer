@@ -1,32 +1,7 @@
-# Visor del registro de NVDA
+# Enhanced log viewer
 
-prototipo de una interfaz para visualizar el registro de NVDA de forma estructurada en una vista de árbol, con posiblidad de aplicar filtros para encontrar la información más fácilmente.
+An NVDA add-on that displays the active NVDA log in a structured tree view and lets you filter entries, inspect tracebacks, and manage bookmarks.
 
-## Funciones y atajos de teclado
+The add-on replaces NVDA's standard log viewer when the standard viewer is opened. It loads the active log file and refreshes the view when NVDA writes a message that requests the log viewer.
 
-* Al abrir el visor se carga automáticamente nvda.log desde %temp%.
-* En el menú Archivo están las opciones para abrir nvda.log, nvda-old.log o cualquier archivo .log
-* Archivo/Guardar como.. guarda todas las enradas de la vista actual en un archivo de texto. Vista actual quiere decir las entradas que cumplan los filtros aplicados.
-
-El menú contextual del árbol tiene las opciones
-- Exportar que guarda en un archivo de texto el contenido de la rama que cuelga del nodo seleccionado.
-- Quitar filtro (control+Z) que limpia los filtros aplicados 
-- Añadir a marcadores / Quitar de marcadores
-- Ocultar
-
-En la vista de detalle, cuando hay un Traceback, si se sitúa el cursor sobre una línea que haga referencia a un archivo .py y se pulsa la barra espaciadora se abrirá dicho archivo en el editor seleccionado en ajustes.
-Si en los ajustes se ha definido la ruta a una carpeta local con el código fuente de NVDA, también se abrirá en el editor el archivo correspondiente al .pyc indicado en el tracebak.
-Si el editor definido en ajustes es vsCode los archivos se abrirán en la línea exacta. Otros editores no soportan esta caracteristica.
-
-### Atajos de teclado
-
-* control+O Abre un archivo .log
-* F5 recarga el archivo abierto.
-* F6 cambia entre la vista en árborl por origen de los mensajes, la vista por niveles  y la vista cronológica.
-* control+F lleva el foco al cuadro de edición de filtro.
-* Con el foco en el árbol, control+1 a control+6 activa/desactiva cada nivel de mensajes (info, warning, error, etc.)
-* control+Z quita los filtros aplicados
-* clic derecho o tecla aplicaciones en el árbol abre el menú contextual
-* control+M añade o quita el elemento actual al menú de marcadores.
-* alt+F4 o control+Q cierra la aplicación
-
+See the [user guide](addon/doc/en/userGuide.md) for features and keyboard shortcuts.

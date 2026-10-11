@@ -1,1 +1,0 @@
-"""wx user interface components."""
