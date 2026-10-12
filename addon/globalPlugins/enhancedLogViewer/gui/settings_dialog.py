@@ -1,3 +1,6 @@
+import os
+from pathlib import Path
+
 import wx
 import addonHandler
 
@@ -5,9 +8,10 @@ addonHandler.initTranslation()
 
 
 class SettingsDialog(wx.Dialog):
-	def __init__(self, parent, settings):
+	def __init__(self, parent, settings, get_vscode_path):
 		super().__init__(parent, title=_("Settings"))
 		self.settings = settings
+		self.get_vscode_path = get_vscode_path
 		self.init_ui()
 
 	def init_ui(self):
@@ -21,9 +25,9 @@ class SettingsDialog(wx.Dialog):
 			wx.ALIGN_CENTER_VERTICAL | wx.ALL,
 			5,
 		)
-		self.editor_path = wx.TextCtrl(self, value=self.settings.get('code_editor', ''))
-		self.editor_path.Bind(wx.EVT_CHAR, self.on_text_char)
+		self.editor_path = wx.ComboBox(self, style=wx.CB_READONLY)
 		editor_sizer.Add(self.editor_path, 1, wx.EXPAND | wx.ALL, 5)
+		self.populate_editor_choices()
 		browse_editor = wx.Button(self, label=_("Browse"))
 		browse_editor.Bind(wx.EVT_BUTTON, self.on_browse_editor)
 		editor_sizer.Add(browse_editor, 0, wx.ALL, 5)
@@ -101,6 +105,31 @@ class SettingsDialog(wx.Dialog):
 		self.Fit()
 		self.Centre()
 
+	def populate_editor_choices(self):
+		editor_paths = []
+		vscode_path = self.get_vscode_path()
+		if vscode_path and Path(vscode_path).is_file():
+			editor_paths.append(str(vscode_path))
+
+		windows_directory = os.environ.get("WINDIR", r"C:\Windows")
+		notepad_path = Path(windows_directory) / "System32" / "notepad.exe"
+		if notepad_path.is_file():
+			editor_paths.append(str(notepad_path))
+
+		saved_editor_path = self.settings.get('code_editor', '')
+		if saved_editor_path and Path(saved_editor_path).is_file():
+			saved_editor_path = str(saved_editor_path)
+			if saved_editor_path not in editor_paths:
+				editor_paths.append(saved_editor_path)
+
+		for editor_path in editor_paths:
+			self.editor_path.Append(editor_path)
+
+		if saved_editor_path in editor_paths:
+			self.editor_path.SetStringSelection(saved_editor_path)
+		else:
+			self.editor_path.SetSelection(wx.NOT_FOUND)
+
 	def on_browse_editor(self, event):
 		with wx.FileDialog(
 			self,
@@ -109,7 +138,10 @@ class SettingsDialog(wx.Dialog):
 			style=wx.FD_OPEN | wx.FD_FILE_MUST_EXIST,
 		) as dlg:
 			if dlg.ShowModal() == wx.ID_OK:
-				self.editor_path.SetValue(dlg.GetPath())
+				editor_path = dlg.GetPath()
+				if self.editor_path.FindString(editor_path) == wx.NOT_FOUND:
+					self.editor_path.Append(editor_path)
+				self.editor_path.SetStringSelection(editor_path)
 
 	def on_browse_nvda(self, event):
 		with wx.DirDialog(self, _("Select NVDA folder")) as dlg:

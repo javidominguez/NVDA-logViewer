@@ -415,7 +415,7 @@ class MainFrame(wx.Frame):
 		self.settings = settings
 
 	def on_settings(self, event):
-		with SettingsDialog(self, self.settings) as dlg:
+		with SettingsDialog(self, self.settings, self.get_vscode_path) as dlg:
 			if dlg.ShowModal() == wx.ID_OK:
 				new_settings = dlg.get_values()
 				self.save_settings(new_settings)

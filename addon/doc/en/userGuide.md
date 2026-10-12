@@ -17,6 +17,7 @@ The tree context menu has the options:
 In the details view, when there is a traceback, place the cursor over a line that refers to a .py file and press the space bar to open that file in the editor selected in settings.
 If the settings define the path to a local folder containing the NVDA source code, the file corresponding to the .pyc file indicated in the traceback can also be opened in the editor.
 If the selected editor is VS Code, files open on the exact line. Other editors might not support this feature.
+In Settings, select VS Code (when detected) or Windows Notepad from the editor list, or use Browse to choose another executable. No editor is selected by default if none has been configured.
 
 ### Keyboard Shortcuts
 
