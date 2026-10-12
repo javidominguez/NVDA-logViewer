@@ -17,10 +17,12 @@ addonHandler.initTranslation()
 
 
 class SettingsDialog(wx.Dialog):
-	def __init__(self, parent, settings, get_vscode_path):
+	def __init__(self, parent, settings, get_vscode_path, data_dir):
 		super().__init__(parent, title=_("Settings"))
 		self.settings = settings
 		self.get_vscode_path = get_vscode_path
+		self.data_dir = Path(data_dir)
+		self.user_config_dir = self.data_dir.parent
 		self.init_ui()
 
 	def init_ui(self):
@@ -158,7 +160,24 @@ class SettingsDialog(wx.Dialog):
 				self.nvda_path.SetValue(dlg.GetPath())
 
 	def on_browse_bookmarks(self, event):
-		with wx.DirDialog(self, _("Select bookmarks folder")) as dlg:
+		bookmarks_folder = Path(self.bookmarks_path.GetValue())
+		if not bookmarks_folder.is_absolute():
+			bookmarks_folder = self.data_dir / bookmarks_folder
+
+		default_bookmarks_folder = self.data_dir / "bookmarks"
+		if bookmarks_folder == default_bookmarks_folder:
+			initial_directory = self.user_config_dir
+		else:
+			initial_directory = bookmarks_folder.parent
+
+		if not initial_directory.is_dir():
+			initial_directory = self.user_config_dir
+
+		with wx.DirDialog(
+			self,
+			_("Select bookmarks folder"),
+			defaultPath=str(initial_directory),
+		) as dlg:
 			if dlg.ShowModal() == wx.ID_OK:
 				self.bookmarks_path.SetValue(dlg.GetPath())
 

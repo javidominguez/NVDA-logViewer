@@ -424,13 +424,20 @@ class MainFrame(wx.Frame):
 		self.settings = settings
 
 	def on_settings(self, event):
-		with SettingsDialog(self, self.settings, self.get_vscode_path) as dlg:
+		with SettingsDialog(
+			self,
+			self.settings,
+			self.get_vscode_path,
+			data_dir=self.data_dir,
+		) as dlg:
 			if dlg.ShowModal() == wx.ID_OK:
 				new_settings = dlg.get_values()
 				self.save_settings(new_settings)
 
 				if 'bookmarks_folder' in new_settings:
 					self.bookmarks_folder = Path(new_settings['bookmarks_folder'])
+					if not self.bookmarks_folder.is_absolute():
+						self.bookmarks_folder = self.data_dir / self.bookmarks_folder
 					self.bookmark_store.set_folder(self.bookmarks_folder)
 
 	def load_file(

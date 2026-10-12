@@ -79,10 +79,6 @@ msgstr "&Ajustes\tCtrl+A"
 msgid "&View"
 msgstr "&Vista"
 
-#: gui/log_detail_view.py:219
-msgid "(no message)"
-msgstr "(sin mensaje)"
-
 #: gui/bookmark_controller.py:243
 msgid "Add to bookmarks"
 msgstr "Añadir a marcadores"
@@ -196,7 +192,7 @@ msgstr "Detalle"
 
 #: gui/tree_view.py:198
 msgid "Developer info for navigator object"
-msgstr "Información de desarrollador del objeto de navegación"
+msgstr "Objeto en el navegador"
 
 #: gui/log_detail_view.py:211
 msgid "Emitter: {}"
@@ -238,10 +234,6 @@ msgstr "Primera entrada"
 msgid "Global Plugins"
 msgstr "Complementos globales"
 
-#: gui/log_detail_view.py:215
-msgid "Header:"
-msgstr "Encabezado:"
-
 #: gui/main_frame.py:461
 msgid "Hidden elements restored"
 msgstr "Elementos ocultos restaurados"
@@ -281,10 +273,6 @@ msgstr "Registro recargado"
 #: gui/main_frame.py:669
 msgid "Log saved"
 msgstr "Registro guardado"
-
-#: gui/log_detail_view.py:218
-msgid "Message:"
-msgstr "Mensaje:"
 
 #: gui/log_detail_view.py:212
 msgid "Module: {}"

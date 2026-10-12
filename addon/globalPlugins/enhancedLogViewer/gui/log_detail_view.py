@@ -229,13 +229,10 @@ class LogDetailView:
 				_("Emitter: {}").format(entry.display_emitter),
 				_("Module: {}").format(entry.module),
 				_("Source: {}").format(entry.source_raw),
-				"",
-				_("Header:"),
-				entry.header_text,
-				"",
-				_("Message:"),
-				entry.message or _("(no message)"),
 			]
+
+			if entry.message:
+				lines.extend(["", entry.message])
 
 			if entry.traceback:
 				lines.extend(["", _("Traceback:")])
