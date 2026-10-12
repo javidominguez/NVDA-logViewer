@@ -10,7 +10,7 @@ The add-on replaces NVDA's standard log viewer when the standard viewer is opene
 * The File menu can open `nvda.log`, `nvda-old.log`, or any `.log` file.
 * Save As exports the entries in the current view, including applied filters.
 * The tree context menu can export the selected branch, clear filters, add or remove bookmarks, and hide entries.
-* In the details view, place the cursor on a traceback line and press Space to open the referenced source file in the configured editor.
+* In the details view, place the cursor on a traceback line and press Space to open the referenced source file in the configured editor. Files that can be opened this way are listed in the details text box context menu.
 * If the NVDA source folder is configured, a `.pyc` traceback reference can be resolved to its corresponding `.py` file.
 * VS Code opens files at the referenced line. Other editors are opened with the file path and may not support line navigation.
 * Settings offer detected VS Code and Windows Notepad choices. Use Browse to select another executable.
@@ -25,6 +25,6 @@ The add-on replaces NVDA's standard log viewer when the standard viewer is opene
 * Ctrl+T: Focus the entries tree.
 * With focus on the tree, Ctrl+1 to Ctrl+6: Toggle each message level.
 * Ctrl+Z: Clear applied filters.
-* Right-click or the Applications key in the tree: Open the context menu.
-* Alt+F4 or Ctrl+Q: Close the viewer.
+* Right-click or the Applications key in the tree or details area: Open the context menu.
 * Ctrl+M: Add or remove the current item from bookmarks.
+* Alt+F4 or Ctrl+Q: Close the viewer.
