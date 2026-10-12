@@ -22,6 +22,8 @@ HEADER_RE = re.compile(
 	r"(?P<thread>.*?)\s*(?:\((?P<pid>\d+)\))?:\s*$"
 )
 
+NAVIGATOR_OBJECT_DEV_INFO_SOURCE = "globalCommands.script_navigatorObject_devInfo"
+
 
 # Pattern for tracebacks: File "path", line number,
 TRACEBACK_FILE_RE = re.compile(
@@ -49,7 +51,7 @@ class LogEntry:
 	source_raw: str
 	time_text: str
 	thread: str
-	pid: int
+	pid: int | None
 
 	message: str = ""
 	traceback: list[str] = field(default_factory=list)
@@ -150,12 +152,12 @@ class LogEntry:
         INFO - core.main (17:42:04.341) - MainThread (21420):
         """
 
+		pid_text = f" ({self.pid})" if self.pid is not None else ""
 		return (
 			f"{self.level} - "
 			f"{self.source_raw} "
 			f"({self.time_text}) - "
-			f"{self.thread} "
-			f"({self.pid}):"
+			f"{self.thread}{pid_text}:"
 		)
 
 	@property

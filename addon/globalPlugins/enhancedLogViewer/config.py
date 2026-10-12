@@ -11,6 +11,8 @@ import json
 from pathlib import Path
 
 SETTINGS_FILE = "settings.json"
+DEFAULT_BOOKMARKS_FOLDER = "bookmarks"
+
 
 def load_settings(default_code_editor="", settings_path=None):
 	path = Path(settings_path) if settings_path else Path(SETTINGS_FILE)
@@ -19,14 +21,22 @@ def load_settings(default_code_editor="", settings_path=None):
 			return json.load(f)
 
 	settings = {
-		'code_editor': default_code_editor,
-		'nvda_source': '',
-		'bookmarks_folder': 'bookmarks',
-		'cleanup_days': 90
+		"code_editor": default_code_editor,
+		"nvda_source": "",
+		"bookmarks_folder": DEFAULT_BOOKMARKS_FOLDER,
+		"cleanup_days": 90
 	}
 	return settings
+
 
 def save_settings(settings, settings_path=None):
 	path = Path(settings_path) if settings_path else Path(SETTINGS_FILE)
 	with path.open("w", encoding="utf-8") as f:
 		json.dump(settings, f, indent=4)
+
+
+def resolve_bookmarks_folder(folder, data_dir):
+	folder = Path(folder)
+	if not folder.is_absolute():
+		folder = Path(data_dir) / folder
+	return folder

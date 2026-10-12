@@ -8,7 +8,6 @@ Copyright (C) 2026 Javi Dominguez <fjavids@gmail.com>
 """
 
 from pathlib import Path
-import re
 import shutil
 import webbrowser
 import wx
@@ -24,10 +23,15 @@ from ..bookmark_store import (
 	entry_hash,
 	extract_embedded_bookmarks,
 )
-from ..config import load_settings as read_settings
-from ..config import save_settings as write_settings
+from ..config import (
+	DEFAULT_BOOKMARKS_FOLDER,
+	load_settings as read_settings,
+	resolve_bookmarks_folder,
+	save_settings as write_settings,
+)
 from ..logs.exporter import write_entries as export_entries
 from ..logs.log_model import LogModel
+from ..logs.models import NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 from ..logs.parser import parse_log
 
 from .bookmark_controller import BookmarkController
@@ -60,13 +64,10 @@ class MainFrame(wx.Frame):
 		self.settings = read_settings(settings_path=self.settings_path)
 
 		# Bookmark configuration.
-		bookmarks_folder_path = self.settings.get(
-			'bookmarks_folder',
-			str(self.data_dir / "bookmarks"),
+		self.bookmarks_folder = resolve_bookmarks_folder(
+			self.settings.get("bookmarks_folder", DEFAULT_BOOKMARKS_FOLDER),
+			self.data_dir,
 		)
-		self.bookmarks_folder = Path(bookmarks_folder_path)
-		if not self.bookmarks_folder.is_absolute():
-			self.bookmarks_folder = self.data_dir / self.bookmarks_folder
 		self.bookmark_store = BookmarkStore(self.bookmarks_folder)
 
 		self.cleanup_old_bookmarks()
@@ -123,9 +124,6 @@ class MainFrame(wx.Frame):
 				allow_empty=True,
 			)
 
-	def get_log_hash(self, path):
-		return self.bookmark_store.get_log_hash(path)
-
 	def load_bookmarks(self, embedded_bookmarks=()):
 		"""Load bookmarks for the current log."""
 		# Clear the bookmarks menu.
@@ -152,8 +150,8 @@ class MainFrame(wx.Frame):
 
 		# Rebuild the menu.
 		for entry in data:
-			signature = entry['signature']
-			label = entry.get('label', _("Unnamed bookmark"))
+			signature = entry["signature"]
+			label = entry.get("label", _("Unnamed bookmark"))
 
 			bookmark_id = wx.NewIdRef()
 			bookmark_item = self.bookmarks_menu.Append(bookmark_id, label)
@@ -164,9 +162,9 @@ class MainFrame(wx.Frame):
 			)
 
 			self.bookmarks.append({
-				'signature': signature,
-				'menu_id': bookmark_id,
-				'label': label,
+				"signature": signature,
+				"menu_id": bookmark_id,
+				"label": label,
 			})
 
 		if embedded_bookmarks:
@@ -180,12 +178,8 @@ class MainFrame(wx.Frame):
 		self.bookmark_store.save(self.current_log_hash, self.bookmarks)
 
 	def cleanup_old_bookmarks(self):
-		days = self.settings.get('cleanup_days', 90)
+		days = self.settings.get("cleanup_days", 90)
 		self.bookmark_store.cleanup_old(days)
-
-
-
-
 
 	def mark_dirty(self):
 		self.filters_dirty = True
@@ -225,22 +219,6 @@ class MainFrame(wx.Frame):
 				allow_empty=True,
 			)
 
-	def focus_last_visible_entry(self):
-		entries = self.model.filtered(
-			self.text_filter.GetValue(),
-			self.selected_levels(),
-			self.hidden_entries,
-		)
-		if not entries:
-			return
-		last_entry = entries[-1]
-		for node, entry in self.tree_entries.items():
-			if entry == last_entry:
-				self.tree.SelectItem(node)
-				self.tree.EnsureVisible(node)
-				self.tree.SetFocus()
-				return
-
 	def focus_navigator_object_dev_info(self):
 		if self.current_view != "source":
 			self.change_view("source")
@@ -251,7 +229,7 @@ class MainFrame(wx.Frame):
 		dev_info_entries = [
 			entry
 			for entry in self.model.entries
-			if entry.source_raw == "globalCommands.script_navigatorObject_devInfo"
+			if entry.source_raw == NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 		]
 		if dev_info_entries:
 			dev_info_entry = max(dev_info_entries, key=lambda entry: entry.sort_time)
@@ -359,8 +337,6 @@ class MainFrame(wx.Frame):
 				return
 		webbrowser.open(doc_path.as_uri())
 
-
-
 	# ========================================================================
 	# CHANGE VIEW
 	# ========================================================================
@@ -434,10 +410,11 @@ class MainFrame(wx.Frame):
 				new_settings = dlg.get_values()
 				self.save_settings(new_settings)
 
-				if 'bookmarks_folder' in new_settings:
-					self.bookmarks_folder = Path(new_settings['bookmarks_folder'])
-					if not self.bookmarks_folder.is_absolute():
-						self.bookmarks_folder = self.data_dir / self.bookmarks_folder
+				if "bookmarks_folder" in new_settings:
+					self.bookmarks_folder = resolve_bookmarks_folder(
+						new_settings["bookmarks_folder"],
+						self.data_dir,
+					)
 					self.bookmark_store.set_folder(self.bookmarks_folder)
 
 	def load_file(
@@ -516,9 +493,6 @@ class MainFrame(wx.Frame):
 				result.add(level)
 
 		return result
-
-
-
 	# ========================================================================
 	# REFRESH
 	# ========================================================================
@@ -596,30 +570,6 @@ class MainFrame(wx.Frame):
 			self.is_refreshing = False
 
 	# ========================================================================
-	# LEVEL VIEW
-	# ========================================================================
-
-
-
-
-
-
-
-
-
-	# ========================================================================
-	# SOURCE VIEW
-	# ========================================================================
-
-
-
-	# ========================================================================
-	# CHRONOLOGICAL VIEW
-	# ========================================================================
-
-
-
-	# ========================================================================
 	# ENTRY TEXT
 	# ========================================================================
 
@@ -639,8 +589,6 @@ class MainFrame(wx.Frame):
 			f"{entry.level} — "
 			f"{message}"
 		)
-
-
 
 	def populate_level_tree(self, entries):
 		self.tree_view.populate_level_tree(entries)
@@ -667,18 +615,8 @@ class MainFrame(wx.Frame):
 	def get_all_entries_under_node(self, node):
 		return self.tree_view.get_all_entries_under_node(node)
 
-
-
-
 	def get_entry_hash(self, entry):
 		return entry_hash(entry)
-
-
-
-
-
-
-
 
 	def on_add_bookmark(self, node):
 		return self.bookmark_controller.on_add_bookmark(node)

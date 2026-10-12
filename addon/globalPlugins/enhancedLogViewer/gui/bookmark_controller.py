@@ -93,7 +93,7 @@ class BookmarkController:
 				label = parts[-1].rstrip(" )")
 
 		if any(
-			frame._signatures_equal(bookmark['signature'], signature)
+			frame._signatures_equal(bookmark["signature"], signature)
 			for bookmark in frame.bookmarks
 		):
 			frame.speak(_("That bookmark already exists"))
@@ -104,9 +104,9 @@ class BookmarkController:
 		frame.Bind(wx.EVT_MENU, lambda e: self.on_bookmark_selected(signature), bookmark_item)
 
 		frame.bookmarks.append({
-			'signature': signature,
-			'menu_id': bookmark_id,
-			'label': label,
+			"signature": signature,
+			"menu_id": bookmark_id,
+			"label": label,
 		})
 		frame.save_bookmarks()
 		frame.speak(_("Bookmark added"))
@@ -200,12 +200,12 @@ class BookmarkController:
 		bookmark = next(
 			(
 				item for item in frame.bookmarks
-				if frame._signatures_equal(item['signature'], signature)
+				if frame._signatures_equal(item["signature"], signature)
 			),
 			None,
 		)
 		if bookmark:
-			frame.bookmarks_menu.Remove(bookmark['menu_id'])
+			frame.bookmarks_menu.Remove(bookmark["menu_id"])
 			frame.bookmarks.remove(bookmark)
 			frame.save_bookmarks()
 
@@ -215,7 +215,7 @@ class BookmarkController:
 		frame = self.frame
 		signature = frame.get_node_signature(node)
 		if any(
-			frame._signatures_equal(bookmark['signature'], signature)
+			frame._signatures_equal(bookmark["signature"], signature)
 			for bookmark in frame.bookmarks
 		):
 			self.on_remove_bookmark(signature)
@@ -234,7 +234,7 @@ class BookmarkController:
 		signature = frame.get_node_signature(item)
 
 		is_bookmarked = any(
-			frame._signatures_equal(signature, bookmark['signature'])
+			frame._signatures_equal(signature, bookmark["signature"])
 			for bookmark in frame.bookmarks
 		)
 
@@ -242,9 +242,9 @@ class BookmarkController:
 			actual_bookmark = next(
 				bookmark
 				for bookmark in frame.bookmarks
-				if frame._signatures_equal(signature, bookmark['signature'])
+				if frame._signatures_equal(signature, bookmark["signature"])
 			)
-			actual_signature = actual_bookmark['signature']
+			actual_signature = actual_bookmark["signature"]
 			bookmark_item = menu.Append(wx.ID_ANY, _("Remove from bookmarks"))
 			frame.Bind(
 				wx.EVT_MENU,

@@ -47,7 +47,7 @@ def parse_log(text):
 				source_raw=match.group("source"),
 				time_text=match.group("time"),
 				thread=match.group("thread"),
-				pid=int(match.group("pid")),
+				pid=int(match.group("pid")) if match.group("pid") else None,
 			)
 
 			next_id += 1

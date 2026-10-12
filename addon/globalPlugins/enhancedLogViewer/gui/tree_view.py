@@ -14,13 +14,10 @@ import addonHandler
 addonHandler.initTranslation()
 
 from ..logs.log_model import LogModel
+from ..logs.models import NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 
 
 class LogTreeView:
-	NAVIGATOR_OBJECT_DEV_INFO_SOURCE = (
-		"globalCommands.script_navigatorObject_devInfo"
-	)
-
 	def __init__(self, tree, detail, model, current_view, entry_label, entry_hash):
 		self.tree = tree
 		self.detail = detail
@@ -36,7 +33,7 @@ class LogTreeView:
 		dev_info_entries = [
 			entry
 			for entry in entries
-			if entry.source_raw == cls.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
+			if entry.source_raw == NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 		]
 		if len(dev_info_entries) < 2:
 			return entries
@@ -46,7 +43,7 @@ class LogTreeView:
 			entry
 			for entry in entries
 			if (
-				entry.source_raw != cls.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
+				entry.source_raw != NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 				or entry is latest_entry
 			)
 		]
@@ -232,7 +229,7 @@ class LogTreeView:
 
 		special_entries = [
 			entry for entry in entries
-			if entry.source_raw == self.NAVIGATOR_OBJECT_DEV_INFO_SOURCE
+			if entry.source_raw == NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 		]
 
 		for entry in special_entries:
@@ -244,7 +241,7 @@ class LogTreeView:
 
 		groups = {}
 		for entry in entries:
-			if entry.source_raw == self.NAVIGATOR_OBJECT_DEV_INFO_SOURCE:
+			if entry.source_raw == NAVIGATOR_OBJECT_DEV_INFO_SOURCE:
 				continue
 			if entry.source_type == "NVDA":
 				key = ("NVDA", entry.module)

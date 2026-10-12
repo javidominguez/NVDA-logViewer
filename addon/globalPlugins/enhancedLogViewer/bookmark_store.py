@@ -138,7 +138,7 @@ class BookmarkStore:
 
 		bookmark_file = self.folder / log_hash
 		data = [
-			{'signature': bookmark['signature'], 'label': bookmark['label']}
+			{"signature": bookmark["signature"], "label": bookmark["label"]}
 			for bookmark in bookmarks
 		]
 		with bookmark_file.open("w", encoding="utf-8") as bookmark_stream:

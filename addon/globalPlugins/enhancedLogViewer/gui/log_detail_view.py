@@ -19,6 +19,7 @@ from .editor_navigation import (
 	open_in_editor,
 	resolve_traceback_location,
 )
+from ..logs.models import NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 
 
 class LogDetailView:
@@ -212,7 +213,7 @@ class LogDetailView:
 
 		if (
 			len(entries) == 1
-			and entries[0].source_raw == "globalCommands.script_navigatorObject_devInfo"
+			and entries[0].source_raw == NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 		):
 			self.detail.SetValue(entries[0].message)
 			return
@@ -223,13 +224,14 @@ class LogDetailView:
 				_("Level: {}").format(entry.level),
 				_("Time: {}").format(entry.time_text),
 				_("Thread: {}").format(entry.thread),
-				_("PID: {}").format(entry.pid),
 				"",
 				_("Origin: {}").format(entry.source_type),
 				_("Emitter: {}").format(entry.display_emitter),
 				_("Module: {}").format(entry.module),
 				_("Source: {}").format(entry.source_raw),
 			]
+			if entry.pid is not None:
+				lines.insert(3, _("PID: {}").format(entry.pid))
 
 			if entry.message:
 				lines.extend(["", entry.message])

@@ -15,6 +15,8 @@ import addonHandler
 
 addonHandler.initTranslation()
 
+from ..config import DEFAULT_BOOKMARKS_FOLDER, resolve_bookmarks_folder
+
 
 class SettingsDialog(wx.Dialog):
 	def __init__(self, parent, settings, get_vscode_path, data_dir):
@@ -52,7 +54,7 @@ class SettingsDialog(wx.Dialog):
 			wx.ALIGN_CENTER_VERTICAL | wx.ALL,
 			5,
 		)
-		self.nvda_path = wx.TextCtrl(self, value=self.settings.get('nvda_source', ''))
+		self.nvda_path = wx.TextCtrl(self, value=self.settings.get("nvda_source", ""))
 		self.nvda_path.Bind(wx.EVT_CHAR, self.on_text_char)
 		nvda_sizer.Add(self.nvda_path, 1, wx.EXPAND | wx.ALL, 5)
 		browse_nvda = wx.Button(self, label=_("Browse"))
@@ -70,7 +72,7 @@ class SettingsDialog(wx.Dialog):
 		)
 		self.bookmarks_path = wx.TextCtrl(
 			self,
-			value=self.settings.get('bookmarks_folder', 'bookmarks'),
+			value=self.settings.get("bookmarks_folder", DEFAULT_BOOKMARKS_FOLDER),
 		)
 		self.bookmarks_path.Bind(wx.EVT_CHAR, self.on_text_char)
 		bookmarks_sizer.Add(self.bookmarks_path, 1, wx.EXPAND | wx.ALL, 5)
@@ -89,7 +91,7 @@ class SettingsDialog(wx.Dialog):
 		)
 		self.cleanup_days = wx.SpinCtrl(
 			self,
-			value=str(self.settings.get('cleanup_days', 90)),
+			value=str(self.settings.get("cleanup_days", 90)),
 			min=1,
 			max=365,
 		)
@@ -127,7 +129,7 @@ class SettingsDialog(wx.Dialog):
 		if notepad_path.is_file():
 			editor_paths.append(str(notepad_path))
 
-		saved_editor_path = self.settings.get('code_editor', '')
+		saved_editor_path = self.settings.get("code_editor", "")
 		if saved_editor_path and Path(saved_editor_path).is_file():
 			saved_editor_path = str(saved_editor_path)
 			if saved_editor_path not in editor_paths:
@@ -160,11 +162,15 @@ class SettingsDialog(wx.Dialog):
 				self.nvda_path.SetValue(dlg.GetPath())
 
 	def on_browse_bookmarks(self, event):
-		bookmarks_folder = Path(self.bookmarks_path.GetValue())
-		if not bookmarks_folder.is_absolute():
-			bookmarks_folder = self.data_dir / bookmarks_folder
+		bookmarks_folder = resolve_bookmarks_folder(
+			self.bookmarks_path.GetValue(),
+			self.data_dir,
+		)
 
-		default_bookmarks_folder = self.data_dir / "bookmarks"
+		default_bookmarks_folder = resolve_bookmarks_folder(
+			DEFAULT_BOOKMARKS_FOLDER,
+			self.data_dir,
+		)
 		if bookmarks_folder == default_bookmarks_folder:
 			initial_directory = self.user_config_dir
 		else:
@@ -183,10 +189,10 @@ class SettingsDialog(wx.Dialog):
 
 	def get_values(self):
 		return {
-			'code_editor': self.editor_path.GetValue(),
-			'nvda_source': self.nvda_path.GetValue(),
-			'bookmarks_folder': self.bookmarks_path.GetValue(),
-			'cleanup_days': self.cleanup_days.GetValue()
+			"code_editor": self.editor_path.GetValue(),
+			"nvda_source": self.nvda_path.GetValue(),
+			"bookmarks_folder": self.bookmarks_path.GetValue(),
+			"cleanup_days": self.cleanup_days.GetValue()
 		}
 
 	def on_text_char(self, event):
@@ -194,7 +200,7 @@ class SettingsDialog(wx.Dialog):
 		# Allow arrow keys (left and right) and Ctrl+C (to copy).
 		if (
 			key in (wx.WXK_LEFT, wx.WXK_RIGHT, wx.WXK_HOME, wx.WXK_END)
-			or (event.ControlDown() and key == ord('C'))
+			or (event.ControlDown() and key == ord("C"))
 		):
 			event.Skip()
 		else:
