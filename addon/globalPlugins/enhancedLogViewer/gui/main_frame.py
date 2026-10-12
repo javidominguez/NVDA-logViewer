@@ -1,3 +1,12 @@
+# -*- coding: UTF-8 -*-
+"""
+Log Viewer - NVDA addon
+This file is a part of the Log Viewer addon.
+This file is covered by the GNU General Public License.
+See the file COPYING.txt for more details.
+Copyright (C) 2026 Javi Dominguez <fjavids@gmail.com>
+"""
+
 from pathlib import Path
 import re
 import shutil
@@ -342,9 +351,9 @@ class MainFrame(wx.Frame):
 
 	def on_help(self, event):
 		language = languageHandler.getLanguage().split("_")[0]
-		doc_path = Path(__file__).parents[3] / "doc" / language / "userGuide.html"
+		doc_path = Path(__file__).parents[3] / "doc" / language / "readme.html"
 		if not doc_path.exists():
-			doc_path = Path(__file__).parents[3] / "doc" / "en" / "userGuide.html"
+			doc_path = Path(__file__).parents[3] / "doc" / "en" / "readme.html"
 			if not doc_path.exists():
 				self.speak(_("Could not find the help file"))
 				return

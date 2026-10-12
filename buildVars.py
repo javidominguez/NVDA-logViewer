@@ -34,7 +34,7 @@ addon_info = AddonInfo(
 	# URL for the add-on repository where the source code can be found
 	addon_sourceURL=None,
 	# Documentation file name
-	addon_docFileName="userGuide.html",
+	addon_docFileName="readme.html",
 	# Minimum NVDA version supported (e.g. "2019.3.0", minor version is optional)
 	addon_minimumNVDAVersion="2026.1.0",
 	# Last NVDA version supported/tested (e.g. "2024.4.0", ideally more recent than minimum version)

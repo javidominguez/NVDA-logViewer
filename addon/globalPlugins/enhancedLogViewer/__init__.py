@@ -1,3 +1,14 @@
+# -*- coding: UTF-8 -*-
+"""
+Enhanced Log Viewer - NVDA addon
+This file is covered by the GNU General Public License.
+See the file COPYING.txt for more details.
+Copyright (C) 2026 Javi Dominguez <fjavids@gmail.com>
+
+Displays the active NVDA log in a structured tree view, allowing you to filter
+entries, inspect tracebacks, and manage bookmarks.
+"""
+
 import addonHandler
 import globalPluginHandler
 import globalVars
