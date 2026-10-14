@@ -104,6 +104,15 @@ class SettingsDialog(wx.Dialog):
 		)
 		sizer.Add(cleanup_sizer, 0, wx.EXPAND)
 
+		self.include_bookmarks_in_export = wx.CheckBox(
+			self,
+			label=_("Include bookmarks in export"),
+		)
+		self.include_bookmarks_in_export.SetValue(
+			self.settings.get("include_bookmarks_in_export", True)
+		)
+		sizer.Add(self.include_bookmarks_in_export, 0, wx.ALL, 5)
+
 		# OK and Cancel buttons.
 		btn_sizer = wx.StdDialogButtonSizer()
 		btn_ok = wx.Button(self, wx.ID_OK, label=_("OK"))
@@ -192,7 +201,8 @@ class SettingsDialog(wx.Dialog):
 			"code_editor": self.editor_path.GetValue(),
 			"nvda_source": self.nvda_path.GetValue(),
 			"bookmarks_folder": self.bookmarks_path.GetValue(),
-			"cleanup_days": self.cleanup_days.GetValue()
+			"cleanup_days": self.cleanup_days.GetValue(),
+			"include_bookmarks_in_export": self.include_bookmarks_in_export.GetValue(),
 		}
 
 	def on_text_char(self, event):

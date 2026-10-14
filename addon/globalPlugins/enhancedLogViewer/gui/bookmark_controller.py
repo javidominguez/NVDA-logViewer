@@ -69,9 +69,9 @@ class BookmarkController:
 			if entry.source_type == "NVDA":
 				return "NVDA", entry.module, entry.level
 			if entry.source_type == "Global Plugin":
-				return "Global Plugins", entry.addon, entry.level
+				return "globalPlugins", entry.addon, entry.level
 			if entry.source_type == "App Module":
-				return "App Modules", entry.addon, entry.level
+				return "appModules", entry.addon, entry.level
 		elif view == "level":
 			return entry.level, entry.module
 		elif view == "time":
@@ -245,21 +245,24 @@ class BookmarkController:
 				if frame._signatures_equal(signature, bookmark["signature"])
 			)
 			actual_signature = actual_bookmark["signature"]
-			bookmark_item = menu.Append(wx.ID_ANY, _("Remove from bookmarks"))
+			bookmark_item = menu.Append(wx.ID_ANY, _("Remove from bookmarks\tCtrl+M"))
 			frame.Bind(
 				wx.EVT_MENU,
 				lambda e: self.on_remove_bookmark(actual_signature),
 				bookmark_item,
 			)
 		else:
-			bookmark_item = menu.Append(wx.ID_ANY, _("Add to bookmarks"))
+			bookmark_item = menu.Append(wx.ID_ANY, _("Add to bookmarks\tCtrl+M"))
 			frame.Bind(wx.EVT_MENU, lambda e: self.on_add_bookmark(item), bookmark_item)
 
 		if frame.current_view in ("source", "level", "time"):
 			export_item = menu.Append(wx.ID_ANY, _("Export"))
 			frame.Bind(wx.EVT_MENU, lambda e: frame.on_export(item), export_item)
 
-		clear_filters_item = menu.Append(wx.ID_ANY, _("Clear filters"))
+			copy_item = menu.Append(wx.ID_ANY, _("Copy\tCtrl+C"))
+			frame.Bind(wx.EVT_MENU, lambda e: frame.on_copy(item), copy_item)
+
+		clear_filters_item = menu.Append(wx.ID_ANY, _("Clear filters\tCtrl+Z"))
 		frame.Bind(wx.EVT_MENU, frame.on_clear_filters, clear_filters_item)
 
 		hide_item = menu.Append(wx.ID_ANY, _("Hide"))

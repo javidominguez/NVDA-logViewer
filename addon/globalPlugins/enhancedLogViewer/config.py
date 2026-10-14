@@ -24,7 +24,8 @@ def load_settings(default_code_editor="", settings_path=None):
 		"code_editor": default_code_editor,
 		"nvda_source": "",
 		"bookmarks_folder": DEFAULT_BOOKMARKS_FOLDER,
-		"cleanup_days": 90
+		"cleanup_days": 90,
+		"include_bookmarks_in_export": True,
 	}
 	return settings
 

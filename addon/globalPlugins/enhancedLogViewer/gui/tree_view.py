@@ -261,13 +261,11 @@ class LogTreeView:
 				emitter_node = self.tree.AppendItem(nvda_node, source_name)
 			elif source_type == "Global Plugin":
 				if global_plugins_node is None:
-					global_plugins_node = self.tree.AppendItem(
-						root, _("Global Plugins")
-					)
+					global_plugins_node = self.tree.AppendItem(root, "globalPlugins")
 				emitter_node = self.tree.AppendItem(global_plugins_node, source_name)
 			else:
 				if app_modules_node is None:
-					app_modules_node = self.tree.AppendItem(root, _("App Modules"))
+					app_modules_node = self.tree.AppendItem(root, "appModules")
 				emitter_node = self.tree.AppendItem(app_modules_node, source_name)
 
 			for level in LogModel.LEVELS:

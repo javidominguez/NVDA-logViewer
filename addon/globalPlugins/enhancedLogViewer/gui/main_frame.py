@@ -29,7 +29,7 @@ from ..config import (
 	resolve_bookmarks_folder,
 	save_settings as write_settings,
 )
-from ..logs.exporter import write_entries as export_entries
+from ..logs.exporter import render_entries, write_entries as export_entries
 from ..logs.log_model import LogModel
 from ..logs.models import NAVIGATOR_OBJECT_DEV_INFO_SOURCE
 from ..logs.parser import parse_log
@@ -256,6 +256,13 @@ class MainFrame(wx.Frame):
 		# F1: Open help.
 		if key_code == wx.WXK_F1:
 			self.on_help(event)
+			return
+
+		# Ctrl+C: Copy the selected tree item only while the tree has focus.
+		if control_down and key_code == ord("C") and self.tree.HasFocus():
+			item = self.tree.GetSelection()
+			if item.IsOk():
+				self.on_copy(item)
 			return
 
 		# Ctrl+O: Open a log.
@@ -637,8 +644,46 @@ class MainFrame(wx.Frame):
 		return self.bookmark_controller.on_tree_context_menu(event)
 
 	def write_entries(self, file_path, entries):
-		bookmarks = self.bookmark_controller.bookmarks_for_entries(entries)
+		bookmarks = (
+			self.bookmark_controller.bookmarks_for_entries(entries)
+			if self.settings.get("include_bookmarks_in_export", True)
+			else ()
+		)
 		export_entries(file_path, entries, bookmarks)
+
+	def on_copy(self, node):
+		entries = self.get_all_entries_under_node(node)
+		if not entries:
+			return
+
+		if not wx.TheClipboard.Open():
+			wx.MessageBox(
+				_("Unable to copy the selected log entries to the clipboard."),
+				_("Error"),
+				wx.OK | wx.ICON_ERROR,
+			)
+			return
+
+		try:
+			copied = wx.TheClipboard.SetData(wx.TextDataObject(render_entries(entries)))
+		finally:
+			wx.TheClipboard.Close()
+
+		if not copied:
+			wx.MessageBox(
+				_("Unable to copy the selected log entries to the clipboard."),
+				_("Error"),
+				wx.OK | wx.ICON_ERROR,
+			)
+			return
+
+		self.speak(
+			ngettext(
+				"%d entry copied to the clipboard",
+				"%d entries copied to the clipboard",
+				len(entries),
+			) % len(entries)
+		)
 
 	def on_save_as(self, event):
 		current_text = self.text_filter.GetValue()

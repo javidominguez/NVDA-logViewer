@@ -12,16 +12,25 @@ from pathlib import Path
 from ..bookmark_store import encode_embedded_bookmarks
 
 
-def write_entries(file_path, entries, bookmarks=()):
-	with Path(file_path).open("w", encoding="utf-8") as output_file:
-		for entry in sorted(entries, key=lambda item: item.sort_time):
-			output_file.write(entry.header_text + "\n")
-			if entry.message:
-				output_file.write(entry.message + "\n")
-			if entry.traceback:
-				output_file.write("\n".join(entry.traceback) + "\n")
-			output_file.write("\n")
+def render_entries(entries, bookmarks=()):
+	lines = []
+	for entry in sorted(entries, key=lambda item: item.sort_time):
+		lines.append(entry.header_text)
+		if entry.message:
+			lines.append(entry.message)
+		if entry.traceback:
+			lines.append("\n".join(entry.traceback))
+		lines.append("")
 
-		bookmark_block = encode_embedded_bookmarks(bookmarks)
-		if bookmark_block:
-			output_file.write(bookmark_block + "\n")
+	bookmark_block = encode_embedded_bookmarks(bookmarks)
+	if bookmark_block:
+		lines.append(bookmark_block)
+
+	return "\n".join(lines) + ("\n" if lines else "")
+
+
+def write_entries(file_path, entries, bookmarks=()):
+	Path(file_path).write_text(
+		render_entries(entries, bookmarks),
+		encoding="utf-8",
+	)

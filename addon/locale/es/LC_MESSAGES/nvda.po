@@ -11,6 +11,7 @@ msgstr ""
 "Last-Translator: Javi Dominguez\n"
 "Language-Team: Spanish\n"
 "Language: es\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
@@ -83,13 +84,13 @@ msgstr "&Vista"
 msgid "Add to bookmarks"
 msgstr "Añadir a marcadores"
 
+#: gui/bookmark_controller.py
+msgid "Add to bookmarks\tCtrl+M"
+msgstr "Añadir a marcadores\tCtrl+M"
+
 #: gui/main_frame.py:344
 msgid "All files (*.*)|*.*"
 msgstr "Todos los archivos (*.*)|*.*"
-
-#: gui/tree_view.py:230
-msgid "App Modules"
-msgstr "Módulos de aplicación"
 
 #: gui/bookmark_controller.py:100
 msgid "Bookmark added"
@@ -144,9 +145,17 @@ msgstr "Vista cronológica"
 msgid "Clean unused bookmarks in:"
 msgstr "Limpiar marcadores no usados en:"
 
+#: gui/settings_dialog.py
+msgid "Include bookmarks in export"
+msgstr "Incluir marcadores en la exportación"
+
 #: gui/bookmark_controller.py:250
 msgid "Clear filters"
 msgstr "Quitar filtros"
+
+#: gui/bookmark_controller.py
+msgid "Clear filters\tCtrl+Z"
+msgstr "Quitar filtros\tCtrl+Z"
 
 #: gui/settings_dialog.py:17
 msgid "Code editor:"
@@ -155,6 +164,20 @@ msgstr "Editor de código:"
 #: gui/log_detail_view.py:39
 msgid "Copy"
 msgstr "Copiar"
+
+#: gui/bookmark_controller.py
+msgid "Copy\tCtrl+C"
+msgstr "Copiar\tCtrl+C"
+
+#: gui/main_frame.py
+msgid "%d entry copied to the clipboard"
+msgid_plural "%d entries copied to the clipboard"
+msgstr[0] "Copiada %d entrada al portapapeles"
+msgstr[1] "Copiadas %d entradas al portapapeles"
+
+#: gui/main_frame.py
+msgid "Unable to copy the selected log entries to the clipboard."
+msgstr "No se pudieron copiar las entradas seleccionadas al portapapeles."
 
 #: gui/log_detail_view.py:94
 msgid "Could not find referenced file: {}"
@@ -229,10 +252,6 @@ msgstr "Filtros eliminados"
 #: gui/log_detail_view.py:162
 msgid "First entry"
 msgstr "Primera entrada"
-
-#: gui/tree_view.py:225
-msgid "Global Plugins"
-msgstr "Complementos globales"
 
 #: gui/main_frame.py:461
 msgid "Hidden elements restored"
@@ -337,6 +356,10 @@ msgstr "PID: {}"
 #: gui/bookmark_controller.py:236
 msgid "Remove from bookmarks"
 msgstr "Quitar de marcadores"
+
+#: gui/bookmark_controller.py
+msgid "Remove from bookmarks\tCtrl+M"
+msgstr "Quitar de marcadores\tCtrl+M"
 
 #: gui/main_frame.py:658 gui/main_frame.py:682
 msgid "Save log as"
